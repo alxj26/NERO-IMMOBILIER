@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Néro Invest — Ce bien est-il rentable ?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090D; --surface:#12141C; --surface2:#1A1D28; --line:#262A38;
+    --text:#F3F6FC; --muted:#8A91A6;
+    --sky:#38BDF8; --sky-bright:#7DD3FC; --indigo:#6366F1;
+    --amber:#FFB020; --red:#FF5470; --green:#34D399;
+    --grad:linear-gradient(120deg,#38BDF8,#6366F1);
+    --grad-soft:linear-gradient(120deg,rgba(56,189,248,.16),rgba(99,102,241,.16));
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.5;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--sky);color:#04121c}
+  .gt{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  header{border-bottom:1px solid var(--line);background:rgba(8,9,13,.8);backdrop-filter:blur(14px);position:sticky;top:0;z-index:40}
+  .hd{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:1080px;margin:0 auto;padding:0 24px}
+  .logo{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.03em}
+  .logo .hex{font-size:21px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .logo small{font-family:var(--body);font-weight:500;font-size:12px;color:var(--muted);margin-left:2px}
+  .badge-pro{font-family:var(--mono);font-size:11px;color:var(--sky);border:1px solid rgba(56,189,248,.3);padding:5px 10px;border-radius:7px;background:rgba(56,189,248,.06)}
+
+  .intro{padding:38px 0 8px}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,36px);letter-spacing:-.03em;line-height:1.08;margin-bottom:10px}
+  .lead{color:var(--muted);font-size:16px;max-width:620px}
+
+  .layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:28px 0 60px;align-items:start}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px}
+  .panel h2{font-family:var(--display);font-weight:600;font-size:16px;margin-bottom:18px;display:flex;align-items:center;gap:9px}
+  .panel h2::before{content:'';width:18px;height:2px;background:var(--grad);border-radius:2px}
+  .sub-sec{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:22px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+
+  .f{margin-bottom:15px}
+  .f .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .f label{font-size:13.5px;color:var(--text);font-weight:500}
+  .f .val{font-family:var(--mono);font-size:14px;color:var(--sky-bright);font-weight:500}
+  .f input[type=number]{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font-size:14.5px;font-family:var(--body)}
+  .f input:focus{outline:none;border-color:var(--sky)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:4px;background:var(--surface2);outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:var(--sky);cursor:pointer;box-shadow:0 0 0 4px rgba(56,189,248,.16)}
+  input[type=range]::-moz-range-thumb{width:17px;height:17px;border:none;border-radius:50%;background:var(--sky);cursor:pointer}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap}
+  .chip{flex:1;min-width:64px;text-align:center;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 6px;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .16s}
+  .chip:hover{border-color:var(--muted)}
+  .chip.sel{border-color:var(--sky);background:var(--grad-soft);color:var(--sky-bright)}
+
+  /* SCORE */
+  .score-card{background:linear-gradient(165deg,var(--surface),#0c0d13);border:1px solid var(--line);border-radius:18px;padding:26px;position:relative;overflow:hidden;margin-bottom:20px}
+  .score-card::before{content:'';position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(140deg,rgba(56,189,248,.5),transparent 45%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+  .score-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .score-lab{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .score-tag{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:7px}
+  .score-main{display:flex;align-items:center;gap:24px}
+  .ring{position:relative;width:128px;height:128px;flex-shrink:0}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .num b{font-family:var(--display);font-weight:700;font-size:38px;line-height:1}
+  .ring .num span{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
+  .score-verdict{flex:1}
+  .score-verdict .vt{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.02em;margin-bottom:5px}
+  .score-verdict .vd{font-size:13px;color:var(--muted);line-height:1.5}
+
+  .pillars{margin-top:20px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:11px}
+  .pil .pt{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+  .pil .pt .pl{color:var(--muted)}
+  .pil .pt .pv{font-family:var(--mono);color:var(--text)}
+  .pbar{height:5px;border-radius:3px;background:var(--surface2);overflow:hidden}
+  .pbar i{display:block;height:100%;border-radius:3px;background:var(--grad);transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:15px}
+  .kpi .kl{font-family:var(--mono);font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .kpi .kv{font-family:var(--mono);font-size:21px;font-weight:700}
+  .kpi .kv.pos{color:var(--green)}.kpi .kv.neg{color:var(--red)}
+  .kpi .kd{font-size:11px;color:var(--muted);margin-top:3px}
+
+  .fiscal{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:20px}
+  .fiscal h3{font-family:var(--display);font-size:15px;margin-bottom:14px}
+  .freg{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:10px;margin-bottom:8px;border:1px solid var(--line);transition:all .2s}
+  .freg.best{border-color:var(--sky);background:var(--grad-soft)}
+  .freg .fn{flex:1;font-size:13.5px;font-weight:500}
+  .freg .ff{font-family:var(--mono);font-size:14px}
+  .freg .ff.pos{color:var(--green)}.freg .ff.neg{color:var(--red)}
+  .freg .fbadge{font-family:var(--mono);font-size:9.5px;color:var(--sky-bright);background:rgba(56,189,248,.12);padding:2px 7px;border-radius:5px}
+  .reco{font-size:12.5px;color:var(--sky-bright);background:var(--grad-soft);border-radius:9px;padding:11px 13px;margin-top:6px;line-height:1.5}
+
+  .chart-wrap{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:20px}
+  .chart-wrap h3{font-family:var(--display);font-size:15px;margin-bottom:4px}
+  .chart-wrap .csub{font-size:12px;color:var(--muted);margin-bottom:16px}
+  .chart{width:100%;height:160px}
+  .clegend{display:flex;gap:18px;margin-top:12px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+  .clegend span{display:flex;align-items:center;gap:6px}
+  .ldot{width:10px;height:3px;border-radius:2px;display:inline-block}
+
+  .cta{background:linear-gradient(150deg,rgba(56,189,248,.12),rgba(99,102,241,.08));border:1px solid rgba(56,189,248,.25);border-radius:16px;padding:22px;text-align:center}
+  .cta h3{font-family:var(--display);font-size:17px;margin-bottom:6px}
+  .cta p{color:var(--muted);font-size:13px;margin-bottom:16px}
+  .btn{font-family:var(--display);font-weight:600;font-size:14px;padding:12px 22px;border-radius:11px;border:none;cursor:pointer;background:var(--grad);color:#04121c;transition:transform .15s,box-shadow .2s}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(56,189,248,.3)}
+
+  .legal{font-size:11px;color:var(--muted);line-height:1.6;margin:10px 0 50px;padding-top:18px;border-top:1px solid var(--line)}
+  @media(prefers-reduced-motion:reduce){.pbar i,.ring circle{transition:none}}
+
+  /* TABS */
+  .tabs{display:flex;gap:8px;margin:24px 0 4px;border-bottom:1px solid var(--line)}
+  .tab{font-family:var(--display);font-weight:600;font-size:15px;color:var(--muted);padding:12px 4px;margin-right:20px;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+  .tab:hover{color:var(--text)}
+  .tab.on{color:var(--text);border-bottom-color:var(--sky)}
+  .tab .ic{margin-right:7px}
+  .view{display:none}.view.on{display:block}
+
+  /* SCPI specifics */
+  .scpi-hl{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+  @media(max-width:560px){.scpi-hl{grid-template-columns:1fr}}
+  .donut{position:relative;width:150px;height:150px;margin:0 auto}
+  .donut svg{transform:rotate(-90deg)}
+  .donut .dc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .donut .dc b{font-family:var(--display);font-weight:700;font-size:30px}
+  .donut .dc span{font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+  /* --- Bandeau défilant (ticker secteur crédit) --- */
+  .ticker{position:relative;overflow:hidden;background:linear-gradient(90deg,rgba(56,189,248,.12),rgba(99,102,241,.12));border-bottom:1px solid var(--line);height:38px;display:flex;align-items:center}
+  .ticker::before,.ticker::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none}
+  .ticker::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+  .ticker::after{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
+  .ticker-track{display:flex;white-space:nowrap;animation:ticker 38s linear infinite;will-change:transform}
+  .ticker:hover .ticker-track{animation-play-state:paused}
+  .ticker-item{display:inline-flex;align-items:center;font-family:var(--mono);font-size:12.5px;color:var(--sky-bright);letter-spacing:.02em;padding:0 4px}
+  .ticker-sep{color:var(--muted);opacity:.55;padding:0 16px;font-size:11px}
+  @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media(prefers-reduced-motion:reduce){.ticker-track{animation:none;justify-content:center;width:100%}}
+</style>
+</head>
+<body>
+<div class="ticker" aria-hidden="true"><div class="ticker-track" id="tickerTrack"></div></div>
+<header>
+  <div class="hd">
+    <a href="/" class="logo" style="text-decoration:none;color:inherit"><span class="hex">&#11041;</span>N&eacute;ro <small>Invest</small></a>
+    <div class="badge-pro">&#11041; N&Eacute;RO SCORE</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="intro">
+    <h1>Ce bien est-il <span class="gt">vraiment rentable ?</span></h1>
+    <p class="lead">Saisis les chiffres de ton projet. N&eacute;ro calcule le rendement r&eacute;el, compare les r&eacute;gimes fiscaux et attribue son score. Tout se recalcule en direct.</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" data-tab="direct" onclick="switchTab('direct')"><span class="ic">&#127968;</span>Locatif direct</div>
+    <div class="tab" data-tab="scpi" onclick="switchTab('scpi')"><span class="ic">&#128202;</span>SCPI (pierre-papier)</div>
+  </div>
+
+  <!-- ===================== VUE LOCATIF DIRECT ===================== -->
+  <div class="view on" id="view-direct">
+  <div class="layout">
+    <!-- ENTRÉES -->
+    <div class="panel">
+      <h2>Les chiffres du bien</h2>
+
+      <div class="sub-sec" style="border-top:none;padding-top:0;margin-top:0">Acquisition</div>
+      <div class="f">
+        <div class="top"><label>Prix d'achat</label><span class="val"><span id="prixV">200 000</span> &euro;</span></div>
+        <input type="range" id="prix" min="50000" max="600000" step="5000" value="200000">
+      </div>
+      <div class="row2">
+        <div class="f">
+          <div class="top"><label>Travaux</label></div>
+          <input type="number" id="travaux" value="10000">
+        </div>
+        <div class="f">
+          <div class="top"><label>Apport</label></div>
+          <input type="number" id="apport" value="20000">
+        </div>
+      </div>
+
+      <div class="sub-sec">Exploitation</div>
+      <div class="f">
+        <div class="top"><label>Loyer mensuel (hors charges)</label><span class="val"><span id="loyerV">850</span> &euro;</span></div>
+        <input type="range" id="loyer" min="200" max="3000" step="10" value="850">
+      </div>
+      <div class="row2">
+        <div class="f">
+          <div class="top"><label>Charges /an</label></div>
+          <input type="number" id="charges" value="1200">
+        </div>
+        <div class="f">
+          <div class="top"><label>Taxe fonci&egrave;re /an</label></div>
+          <input type="number" id="tf" value="900">
+        </div>
+      </div>
+      <div class="f">
+        <div class="top"><label>Vacance locative</label><span class="val"><span id="vacV">1</span> mois/an</span></div>
+        <input type="range" id="vac" min="0" max="3" step="0.5" value="1">
+      </div>
+
+      <div class="sub-sec">Financement</div>
+      <div class="row2">
+        <div class="f">
+          <div class="top"><label>Taux cr&eacute;dit</label><span class="val"><span id="tauxV">3.50</span>%</span></div>
+          <input type="range" id="taux" min="2" max="5" step="0.05" value="3.50">
+        </div>
+        <div class="f">
+          <div class="top"><label>Dur&eacute;e</label><span class="val"><span id="durV">20</span> ans</span></div>
+          <input type="range" id="dur" min="10" max="25" step="1" value="20">
+        </div>
+      </div>
+
+      <div class="sub-sec">Profil fiscal</div>
+      <div class="f">
+        <div class="top"><label>Ta tranche marginale d'imposition (TMI)</label></div>
+        <div class="chips" id="tmi">
+          <div class="chip" data-v="0.11">11%</div>
+          <div class="chip sel" data-v="0.30">30%</div>
+          <div class="chip" data-v="0.41">41%</div>
+          <div class="chip" data-v="0.45">45%</div>
+        </div>
+      </div>
+      <div class="f">
+        <div class="top"><label>Niveau de loyer Jeanbrun</label><span class="val" id="jbNote">interm. &middot; 3,5%</span></div>
+        <div class="chips" id="jbloyer">
+          <div class="chip sel" data-v="0.035">Interm&eacute;diaire</div>
+          <div class="chip" data-v="0.045">Social</div>
+          <div class="chip" data-v="0.055">Tr&egrave;s social</div>
+        </div>
+        <div class="hint" style="font-size:11.5px;color:var(--muted);margin-top:7px">Plus le loyer est encadr&eacute;, plus l'amortissement est &eacute;lev&eacute; (3,5% &agrave; 5,5%). R&eacute;serv&eacute; au collectif, location nue, 9 ans.</div>
+      </div>
+    </div>
+
+    <!-- RÉSULTATS -->
+    <div>
+      <!-- SCORE -->
+      <div class="score-card">
+        <div class="score-top">
+          <span class="score-lab">&#11041; N&eacute;ro Score</span>
+          <span class="score-tag" id="scoreTag">&mdash;</span>
+        </div>
+        <div class="score-main">
+          <div class="ring">
+            <svg width="128" height="128" viewBox="0 0 128 128">
+              <circle cx="64" cy="64" r="56" fill="none" stroke="#1A1D28" stroke-width="11"/>
+              <circle id="ringFill" cx="64" cy="64" r="56" fill="none" stroke="url(#g)" stroke-width="11"
+                stroke-linecap="round" stroke-dasharray="351.86" stroke-dashoffset="351.86"
+                style="transition:stroke-dashoffset .7s cubic-bezier(.4,0,.2,1)"/>
+              <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#38BDF8"/><stop offset="1" stop-color="#6366F1"/>
+              </linearGradient></defs>
+            </svg>
+            <div class="num"><b id="scoreNum">0</b><span>/ 100</span></div>
+          </div>
+          <div class="score-verdict">
+            <div class="vt" id="scoreVerdict">&mdash;</div>
+            <div class="vd" id="scoreDesc">Ajuste les curseurs pour voir le score se recalculer.</div>
+          </div>
+        </div>
+        <div class="pillars" id="pillars"></div>
+      </div>
+
+      <!-- KPIS -->
+      <div class="kpis">
+        <div class="kpi"><div class="kl">Cashflow mensuel</div><div class="kv" id="kCashflow">0 &euro;</div><div class="kd" id="kCashflowD">apr&egrave;s cr&eacute;dit & charges</div></div>
+        <div class="kpi"><div class="kl">Rendement net</div><div class="kv" id="kRendNet">0 %</div><div class="kd">net de charges</div></div>
+        <div class="kpi"><div class="kl">Rendement brut</div><div class="kv" id="kRendBrut">0 %</div><div class="kd">loyer / prix</div></div>
+        <div class="kpi"><div class="kl">Effort d'&eacute;pargne</div><div class="kv" id="kEffort">0 &euro;</div><div class="kd">de ta poche /mois</div></div>
+      </div>
+
+      <!-- FISCAL -->
+      <div class="fiscal">
+        <h3>Comparateur fiscal</h3>
+        <div id="fiscalList"></div>
+        <div class="reco" id="fiscalReco"></div>
+      </div>
+
+      <!-- CASHFLOW CHART -->
+      <div class="chart-wrap">
+        <h3>Projection sur 25 ans</h3>
+        <div class="csub">Cashflow cumul&eacute; et capital rembours&eacute; (enrichissement patrimonial)</div>
+        <svg class="chart" id="chart" viewBox="0 0 600 160" preserveAspectRatio="none"></svg>
+        <div class="clegend">
+          <span><i class="ldot" style="background:#38BDF8"></i> Cashflow cumul&eacute;</span>
+          <span><i class="ldot" style="background:#6366F1"></i> Capital rembours&eacute;</span>
+          <span><i class="ldot" style="background:#34D399"></i> Patrimoine net cr&eacute;&eacute;</span>
+        </div>
+      </div>
+
+      <div class="cta">
+        <h3>Garde tous tes biens au m&ecirc;me endroit</h3>
+        <p>Multi-projets, historique, export PDF, suivi de portefeuille &mdash; avec N&eacute;ro Invest &agrave; 9&euro;/mois.</p>
+        <a class="btn" href="/paiement" style="text-decoration:none;display:inline-block">Passer &agrave; N&eacute;ro Invest</a>
+      </div>
+
+      <div class="legal">
+        Calculs indicatifs. Le r&eacute;gime LMNP au r&eacute;el suppose l'amortissement du bien (hors terrain) et du mobilier ; le dispositif Jeanbrun (statut du bailleur priv&eacute;, loi de finances 2026) suppose un logement collectif lou&eacute; nu, un engagement de 9 ans et des loyers plafonn&eacute;s. La fiscalit&eacute; r&eacute;elle d&eacute;pend de ta situation globale. N&eacute;ro ne se substitue pas &agrave; un expert-comptable ou &agrave; un conseil fiscal personnalis&eacute;.
+      </div>
+    </div>
+  </div>
+  </div><!-- /view-direct -->
+
+  <!-- ===================== VUE SCPI ===================== -->
+  <div class="view" id="view-scpi">
+  <div class="layout">
+    <!-- ENTRÉES SCPI -->
+    <div class="panel">
+      <h2>Ton investissement SCPI</h2>
+
+      <div class="sub-sec" style="border-top:none;padding-top:0;margin-top:0">Souscription</div>
+      <div class="f">
+        <div class="top"><label>Montant investi</label><span class="val"><span id="sMontantV">50 000</span> &euro;</span></div>
+        <input type="range" id="sMontant" min="5000" max="500000" step="1000" value="50000">
+      </div>
+      <div class="f">
+        <div class="top"><label>Taux de distribution annuel</label><span class="val"><span id="sRendV">5.0</span>%</span></div>
+        <input type="range" id="sRend" min="3" max="7" step="0.1" value="5.0">
+        <div class="hint" style="font-size:11.5px;color:var(--muted);margin-top:7px">Rendement moyen du march&eacute; SCPI 2025-2026 : ~4,5 &agrave; 5,5%.</div>
+      </div>
+      <div class="row2">
+        <div class="f">
+          <div class="top"><label>Frais de souscription</label><span class="val"><span id="sFraisV">10</span>%</span></div>
+          <input type="range" id="sFrais" min="0" max="12" step="0.5" value="10">
+        </div>
+        <div class="f">
+          <div class="top"><label>Dur&eacute;e de d&eacute;tention</label><span class="val"><span id="sDurV">15</span> ans</span></div>
+          <input type="range" id="sDur" min="5" max="30" step="1" value="15">
+        </div>
+      </div>
+      <div class="f">
+        <div class="top"><label>Revalorisation des parts /an</label><span class="val"><span id="sReval2">1.0</span>%</span></div>
+        <input type="range" id="sReval" min="-2" max="3" step="0.5" value="1.0">
+        <div class="hint" style="font-size:11.5px;color:var(--muted);margin-top:7px">\u00c9volution annuelle du prix de la part (peut &ecirc;tre n&eacute;gative).</div>
+      </div>
+
+      <div class="sub-sec">Mode d'acquisition</div>
+      <div class="f">
+        <div class="top"><label>Comment finances-tu ?</label></div>
+        <div class="chips" id="sMode">
+          <div class="chip sel" data-v="comptant">Au comptant</div>
+          <div class="chip" data-v="credit">&Agrave; cr&eacute;dit</div>
+        </div>
+      </div>
+      <div id="sCreditFields" style="display:none">
+        <div class="row2">
+          <div class="f">
+            <div class="top"><label>Taux cr&eacute;dit</label><span class="val"><span id="sTauxV">3.50</span>%</span></div>
+            <input type="range" id="sTaux" min="2" max="5" step="0.05" value="3.50">
+          </div>
+          <div class="f">
+            <div class="top"><label>Dur&eacute;e cr&eacute;dit</label><span class="val"><span id="sCredDurV">15</span> ans</span></div>
+            <input type="range" id="sCredDur" min="5" max="25" step="1" value="15">
+          </div>
+        </div>
+      </div>
+
+      <div class="sub-sec">Profil fiscal</div>
+      <div class="f">
+        <div class="top"><label>Ta tranche marginale (TMI)</label></div>
+        <div class="chips" id="sTmi">
+          <div class="chip" data-v="0.11">11%</div>
+          <div class="chip sel" data-v="0.30">30%</div>
+          <div class="chip" data-v="0.41">41%</div>
+          <div class="chip" data-v="0.45">45%</div>
+        </div>
+        <div class="hint" style="font-size:11.5px;color:var(--muted);margin-top:7px">Revenus SCPI fran&ccedil;aises = revenus fonciers (TMI + 17,2% de pr&eacute;l&egrave;vements sociaux).</div>
+      </div>
+    </div>
+
+    <!-- RÉSULTATS SCPI -->
+    <div>
+      <div class="score-card">
+        <div class="score-top">
+          <span class="score-lab">&#11041; N&eacute;ro Score SCPI</span>
+          <span class="score-tag" id="sScoreTag">&mdash;</span>
+        </div>
+        <div class="score-main">
+          <div class="ring">
+            <svg width="128" height="128" viewBox="0 0 128 128">
+              <circle cx="64" cy="64" r="56" fill="none" stroke="#1A1D28" stroke-width="11"/>
+              <circle id="sRingFill" cx="64" cy="64" r="56" fill="none" stroke="url(#g2)" stroke-width="11"
+                stroke-linecap="round" stroke-dasharray="351.86" stroke-dashoffset="351.86"
+                style="transition:stroke-dashoffset .7s cubic-bezier(.4,0,.2,1)"/>
+              <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#38BDF8"/><stop offset="1" stop-color="#6366F1"/>
+              </linearGradient></defs>
+            </svg>
+            <div class="num"><b id="sScoreNum">0</b><span>/ 100</span></div>
+          </div>
+          <div class="score-verdict">
+            <div class="vt" id="sScoreVerdict">&mdash;</div>
+            <div class="vd" id="sScoreDesc">Ajuste les curseurs pour voir le score SCPI.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="kl">Revenu net mensuel</div><div class="kv" id="sRevNet">0 &euro;</div><div class="kd" id="sRevNetD">apr&egrave;s imp&ocirc;ts</div></div>
+        <div class="kpi"><div class="kl">Rendement net net</div><div class="kv" id="sRendNet">0 %</div><div class="kd">apr&egrave;s fiscalit&eacute;</div></div>
+        <div class="kpi"><div class="kl">Capital &agrave; terme</div><div class="kv" id="sCapital">0 &euro;</div><div class="kd" id="sCapitalD">valeur des parts</div></div>
+        <div class="kpi"><div class="kl">Gain total</div><div class="kv" id="sGain">0 &euro;</div><div class="kd">revenus + plus-value</div></div>
+      </div>
+
+      <div class="fiscal">
+        <h3>D&eacute;tail de l'op&eacute;ration</h3>
+        <div id="sDetail"></div>
+      </div>
+
+      <div class="chart-wrap">
+        <h3>Projection patrimoniale</h3>
+        <div class="csub">Revenus cumul&eacute;s et valeur des parts dans le temps</div>
+        <svg class="chart" id="sChart" viewBox="0 0 600 160" preserveAspectRatio="none"></svg>
+        <div class="clegend">
+          <span><i class="ldot" style="background:#38BDF8"></i> Revenus nets cumul&eacute;s</span>
+          <span><i class="ldot" style="background:#34D399"></i> Valeur des parts</span>
+        </div>
+      </div>
+
+      <div class="cta">
+        <h3>Compare direct, SCPI et assurance-vie</h3>
+        <p>N&eacute;ro Invest analyse toutes tes options patrimoniales au m&ecirc;me endroit &mdash; 9&euro;/mois.</p>
+        <a class="btn" href="/paiement" style="text-decoration:none;display:inline-block">Passer &agrave; N&eacute;ro Invest</a>
+      </div>
+
+      <div class="legal">
+        Estimation indicative. Les performances pass&eacute;es des SCPI ne pr&eacute;jugent pas des performances futures ; le capital et les revenus ne sont pas garantis, la liquidit&eacute; est limit&eacute;e. Les SCPI europ&eacute;ennes b&eacute;n&eacute;ficient d'une fiscalit&eacute; all&eacute;g&eacute;e non mod&eacute;lis&eacute;e ici. N&eacute;ro ne fournit pas de conseil en investissement personnalis&eacute; au sens de la r&eacute;glementation AMF sans &eacute;tude d&eacute;di&eacute;e.
+      </div>
+    </div>
+  </div>
+  </div><!-- /view-scpi -->
+</div>
+
+<script>
+const fmt=n=>Math.round(n).toLocaleString('fr-FR')+' \u20ac';
+const fmtS=n=>(n>=0?'+':'\u2212')+Math.abs(Math.round(n)).toLocaleString('fr-FR')+' \u20ac';
+const state={tmi:0.30, jbloyer:0.035};
+
+document.querySelectorAll('.chips').forEach(g=>{
+  g.querySelectorAll('.chip').forEach(c=>{
+    c.onclick=()=>{g.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');state[g.id]=parseFloat(c.dataset.v);
+      if(g.id==='jbloyer'){
+        const lbl={'0.035':'interm. \u00b7 3,5%','0.045':'social \u00b7 4,5%','0.055':'tr\u00e8s social \u00b7 5,5%'}[c.dataset.v];
+        document.getElementById('jbNote').textContent=lbl;
+      }
+      compute();};
+  });
+});
+
+function mensualite(capital,annees,taux){const n=annees*12,r=taux/12;return r===0?capital/n:capital*r/(1-Math.pow(1+r,-n));}
+
+function compute(){
+  const prix=+prix_.value, travaux=+document.getElementById('travaux').value||0,
+        apport=+document.getElementById('apport').value||0,
+        loyer=+loyer_.value, charges=+document.getElementById('charges').value||0,
+        tf=+document.getElementById('tf').value||0, vac=+vac_.value,
+        taux=+taux_.value/100, dur=+dur_.value, tmi=state.tmi;
+
+  // affichage curseurs
+  prixVV.textContent=prix.toLocaleString('fr-FR');
+  loyerVV.textContent=loyer.toLocaleString('fr-FR');
+  vacVV.textContent=vac; tauxVV.textContent=(taux*100).toFixed(2); durVV.textContent=dur;
+
+  const fraisNotaire=prix*0.078;
+  const coutTotal=prix+fraisNotaire+travaux;
+  const emprunt=Math.max(coutTotal-apport,0);
+  const mens=mensualite(emprunt,dur,taux);
+  const loyerAnnuel=loyer*(12-vac);
+  const chargesAnnuelles=charges+tf;
+  const PS=0.172; // prélèvements sociaux
+
+  // rendements
+  const rendBrut=loyer*12/prix*100;
+  const rendNet=(loyerAnnuel-chargesAnnuelles)/coutTotal*100;
+
+  // --- FISCALITÉ : 4 régimes (impôt annuel estimé) ---
+  // 1. Nu micro-foncier (abattement 30%)
+  const baseNuMicro=loyerAnnuel*0.70;
+  const impotNuMicro=baseNuMicro*(tmi+PS);
+  // 2. LMNP micro-BIC (abattement 50%)
+  const baseMicroBIC=loyerAnnuel*0.50;
+  const impotMicroBIC=baseMicroBIC*(tmi+PS);
+  // 3. LMNP réel (amortissement ~ gomme le résultat imposable les 1res années)
+  const amortBien=(prix*0.85)/30; // bâti amorti sur 30 ans
+  const amortMobilier=(travaux*0.5+5000)/7;
+  const interets1=emprunt*taux; // approx intérêts année 1
+  const resultatReel=loyerAnnuel-chargesAnnuelles-amortBien-amortMobilier-interets1;
+  const impotReel=Math.max(resultatReel,0)*(tmi+PS);
+  // 4. Nu au réel (déficit foncier possible mais impôt sur le positif)
+  const resultatNuReel=loyerAnnuel-chargesAnnuelles-interets1;
+  const impotNuReel=Math.max(resultatNuReel,0)*(tmi+PS);
+  // 5. Jeanbrun (statut bailleur privé) : amortissement 80% du prix × taux selon loyer, plafond 12 000€/an
+  //    location nue, revenus fonciers ; déficit imputable sur revenu global (plafond ~21 400€)
+  const tauxJB=state.jbloyer||0.035;
+  const amortJB=Math.min(prix*0.80*tauxJB,12000);
+  const resultatJB=loyerAnnuel-chargesAnnuelles-interets1-amortJB;
+  let impotJB, economieDeficitJB=0;
+  if(resultatJB>=0){
+    impotJB=resultatJB*(tmi+PS);
+  } else {
+    // résultat négatif : pas d'impôt foncier + déficit imputable sur revenu global (hors PS)
+    impotJB=0;
+    const deficitImputable=Math.min(-resultatJB,21400);
+    economieDeficitJB=deficitImputable*tmi; // économie d'impôt sur le revenu global
+  }
+
+  const regimes=[
+    {n:'Location nue (micro-foncier)',i:impotNuMicro},
+    {n:'Location nue (r\u00e9el)',i:impotNuReel},
+    {n:'LMNP micro-BIC',i:impotMicroBIC},
+    {n:'LMNP au r\u00e9el',i:impotReel},
+    {n:'Jeanbrun (bailleur priv\u00e9)',i:impotJB,bonus:economieDeficitJB,jb:true},
+  ];
+  regimes.forEach(r=>{r.cashflowAn=loyerAnnuel-chargesAnnuelles-mens*12-r.i+(r.bonus||0);});
+  const best=regimes.reduce((a,b)=>b.cashflowAn>a.cashflowAn?b:a);
+
+  // cashflow au régime optimal
+  const cashflowMois=best.cashflowAn/12;
+  const effort=cashflowMois<0?-cashflowMois:0;
+
+  // --- NÉRO SCORE ---
+  // pondérations : rentabilité nette 30, cashflow 25, TRI/patrimoine 20, stress 15, fiscalité 10
+  const sRent=Math.max(0,Math.min(1,(rendNet-2)/(7-2)));         // 2%→7%
+  const sCash=Math.max(0,Math.min(1,(cashflowMois+200)/400));     // -200→+200
+  const capRembours20=emprunt*0.55;                               // approx capital remboursé
+  const sPat=Math.max(0,Math.min(1,capRembours20/emprunt));
+  const mensSurLoyer=mens/(loyer||1);
+  const sStress=Math.max(0,Math.min(1,(1.4-mensSurLoyer)/(1.4-0.7)));
+  const sFisc=(best.jb||best.n.includes('r\u00e9el'))?1:best.n.includes('BIC')?0.6:0.3;
+  const score=Math.round((sRent*30+sCash*25+sPat*20+sStress*15+sFisc*10));
+
+  // ring
+  const C=351.86;
+  ringFill.style.strokeDashoffset=C-(C*score/100);
+  animateNum(scoreNum,score);
+  let label,col,desc;
+  if(score>=75){label='EXCELLENT';col='var(--green)';desc='Tr\u00e8s bon investissement. Cashflow et rentabilit\u00e9 align\u00e9s, risque ma\u00eetris\u00e9.';}
+  else if(score>=55){label='SOLIDE';col='var(--sky)';desc='Bon dossier. Quelques leviers \u00e0 optimiser, mais la base est saine.';}
+  else if(score>=40){label='\u00c0 N\u00c9GOCIER';col='var(--amber)';desc='Rentabilit\u00e9 limite. N\u00e9gocie le prix ou revois le loyer pour am\u00e9liorer le score.';}
+  else{label='RISQU\u00c9';col='var(--red)';desc='Ce bien d\u00e9truit du cashflow. \u00c0 retravailler en profondeur avant de te lancer.';}
+  scoreVerdict.textContent=label; scoreVerdict.style.color=col;
+  scoreDesc.textContent=desc;
+  scoreTag.textContent=label;
+  scoreTag.style.color=col;
+  scoreTag.style.border='1px solid '+col;
+  scoreTag.style.background='transparent';
+
+  // pillars
+  const pil=[['Rentabilit\u00e9 nette',sRent,rendNet.toFixed(1)+'%'],
+    ['Cashflow mensuel',sCash,fmtS(cashflowMois)],
+    ['Enrichissement patrimonial',sPat,Math.round(sPat*100)+'%'],
+    ['R\u00e9sistance (stress test)',sStress,Math.round(sStress*100)+'/100'],
+    ['Optimisation fiscale',sFisc,best.n.split(' ')[0]]];
+  pillars.innerHTML=pil.map(p=>
+    '<div class="pil"><div class="pt"><span class="pl">'+p[0]+'</span><span class="pv">'+p[2]+'</span></div>'+
+    '<div class="pbar"><i style="width:'+(p[1]*100)+'%"></i></div></div>').join('');
+
+  // KPIs
+  const kc=document.getElementById('kCashflow');
+  kc.textContent=fmtS(cashflowMois); kc.className='kv '+(cashflowMois>=0?'pos':'neg');
+  document.getElementById('kRendNet').textContent=rendNet.toFixed(2)+' %';
+  document.getElementById('kRendBrut').textContent=rendBrut.toFixed(2)+' %';
+  const ke=document.getElementById('kEffort');
+  ke.textContent=effort>0?fmt(effort):'0 \u20ac';
+  ke.className='kv '+(effort>0?'neg':'pos');
+
+  // fiscal list
+  fiscalList.innerHTML=regimes.map(r=>{
+    const isBest=r===best;
+    const cf=r.cashflowAn/12;
+    const jbBadge=r.jb&&r.bonus>0?' <span class="fbadge">d\u00e9ficit imput\u00e9</span>':'';
+    return '<div class="freg'+(isBest?' best':'')+'"><span class="fn">'+r.n+jbBadge+(isBest?' <span class="fbadge">OPTIMAL</span>':'')+'</span>'+
+      '<span class="ff '+(cf>=0?'pos':'neg')+'">'+fmtS(cf)+'/mois</span></div>';
+  }).join('');
+  const gain=(best.cashflowAn-regimes[0].cashflowAn)/12;
+  let recoTxt='&#11041; N\u00e9ro recommande <b>'+best.n+'</b>'+(gain>5?' \u2014 soit '+fmtS(gain)+'/mois de mieux que la location nue classique.':'.');
+  if(best.jb) recoTxt+=' <span style="color:var(--muted)">Amortissement Jeanbrun : '+fmt(amortJB)+'/an d\u00e9duits'+(economieDeficitJB>0?', dont d\u00e9ficit imput\u00e9 sur le revenu global.':'.')+'</span>';
+  fiscalReco.innerHTML=recoTxt;
+
+  drawChart(best.cashflowAn,emprunt,dur,prix);
+}
+
+function drawChart(cashflowAn,emprunt,dur,prix){
+  const W=600,H=160,years=25,pad=4;
+  const cumCF=[],cumCap=[],cumPat=[];
+  let cf=0;
+  for(let y=1;y<=years;y++){
+    cf+=cashflowAn;
+    const capPart=y<=dur?emprunt*(y/dur)*0.92:emprunt;
+    cumCF.push(cf); cumCap.push(capPart); cumPat.push(cf+capPart);
+  }
+  const all=cumCF.concat(cumCap,cumPat);
+  const mn=Math.min(0,...all), mx=Math.max(...all,1);
+  const X=i=>pad+(W-2*pad)*i/(years-1);
+  const Y=v=>H-pad-(H-2*pad)*(v-mn)/(mx-mn);
+  const path=arr=>arr.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(' ');
+  const zeroY=Y(0);
+  document.getElementById('chart').innerHTML=
+    '<line x1="0" y1="'+zeroY+'" x2="'+W+'" y2="'+zeroY+'" stroke="#262A38" stroke-width="1" stroke-dasharray="3 3"/>'+
+    '<path d="'+path(cumPat)+'" fill="none" stroke="#34D399" stroke-width="2.5"/>'+
+    '<path d="'+path(cumCap)+'" fill="none" stroke="#6366F1" stroke-width="2"/>'+
+    '<path d="'+path(cumCF)+'" fill="none" stroke="#38BDF8" stroke-width="2"/>';
+}
+
+let raf;
+function animateNum(el,to){
+  cancelAnimationFrame(raf);
+  const from=+el.textContent||0,start=performance.now(),d=600;
+  function tick(t){const p=Math.min((t-start)/d,1),e=1-Math.pow(1-p,3);el.textContent=Math.round(from+(to-from)*e);if(p<1)raf=requestAnimationFrame(tick);}
+  raf=requestAnimationFrame(tick);
+}
+
+// refs
+const prix_=document.getElementById('prix'),loyer_=document.getElementById('loyer'),
+  vac_=document.getElementById('vac'),taux_=document.getElementById('taux'),dur_=document.getElementById('dur'),
+  prixVV=document.getElementById('prixV'),loyerVV=document.getElementById('loyerV'),
+  vacVV=document.getElementById('vacV'),tauxVV=document.getElementById('tauxV'),durVV=document.getElementById('durV');
+
+['prix','travaux','apport','loyer','charges','tf','vac','taux','dur'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',compute);
+});
+
+/* ===================== ONGLETS ===================== */
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.tab===t));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='view-'+t));
+  if(t==='scpi') computeSCPI();
+}
+
+/* ===================== MOTEUR SCPI ===================== */
+const sState={sMode:'comptant', sTmi:0.30};
+document.querySelectorAll('#sMode .chip, #sTmi .chip').forEach(c=>{
+  c.onclick=()=>{
+    const g=c.parentElement;g.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');
+    sState[g.id]=isNaN(parseFloat(c.dataset.v))?c.dataset.v:parseFloat(c.dataset.v);
+    document.getElementById('sCreditFields').style.display=(sState.sMode==='credit')?'block':'none';
+    computeSCPI();
+  };
+});
+
+function computeSCPI(){
+  const montant=+document.getElementById('sMontant').value,
+        rend=+document.getElementById('sRend').value/100,
+        frais=+document.getElementById('sFrais').value/100,
+        dur=+document.getElementById('sDur').value,
+        reval=+document.getElementById('sReval').value/100,
+        tmi=sState.sTmi, PS=0.172,
+        mode=sState.sMode;
+
+  document.getElementById('sMontantV').textContent=montant.toLocaleString('fr-FR');
+  document.getElementById('sRendV').textContent=(rend*100).toFixed(1);
+  document.getElementById('sFraisV').textContent=(frais*100).toFixed(1);
+  document.getElementById('sDurV').textContent=dur;
+  document.getElementById('sReval2').textContent=(reval*100).toFixed(1);
+
+  const valeurParts0=montant*(1-frais);
+  const revenuBrutAn=montant*rend;
+  const impotAn=revenuBrutAn*(tmi+PS);
+  const revenuNetAn=revenuBrutAn-impotAn;
+
+  let mensCredit=0, coutCreditTotal=0, credDur=0, sTaux=0;
+  if(mode==='credit'){
+    sTaux=+document.getElementById('sTaux').value/100;
+    credDur=+document.getElementById('sCredDur').value;
+    document.getElementById('sTauxV').textContent=(sTaux*100).toFixed(2);
+    document.getElementById('sCredDurV').textContent=credDur;
+    const n=credDur*12,r=sTaux/12;
+    mensCredit=montant*r/(1-Math.pow(1+r,-n));
+    coutCreditTotal=mensCredit*n-montant;
+  }
+
+  const valeurPartsTerme=valeurParts0*Math.pow(1+reval,dur);
+  const plusValue=valeurPartsTerme-valeurParts0;
+
+  let revenusCumules=0; const ptsRev=[],ptsVal=[];
+  for(let y=1;y<=dur;y++){
+    let netY=revenuNetAn;
+    if(mode==='credit' && y<=credDur) netY-=mensCredit*12;
+    revenusCumules+=netY;
+    ptsRev.push(revenusCumules);
+    ptsVal.push(valeurParts0*Math.pow(1+reval,y));
+  }
+
+  const revNetMoisAffiche=revenuNetAn/12-(mode==='credit'?mensCredit:0);
+  const rendNetNet=revenuNetAn/montant*100;
+  const gainTotal=revenusCumules+plusValue;
+
+  const rn=document.getElementById('sRevNet');
+  rn.textContent=fmtS(revNetMoisAffiche); rn.className='kv '+(revNetMoisAffiche>=0?'pos':'neg');
+  document.getElementById('sRevNetD').textContent=mode==='credit'?'apr\u00e8s imp\u00f4ts & cr\u00e9dit':'apr\u00e8s imp\u00f4ts';
+  document.getElementById('sRendNet').textContent=rendNetNet.toFixed(2)+' %';
+  document.getElementById('sCapital').textContent=fmt(valeurPartsTerme);
+  document.getElementById('sCapitalD').textContent='dans '+dur+' ans ('+(reval>=0?'+':'')+(reval*100).toFixed(1)+'%/an)';
+  const gg=document.getElementById('sGain');
+  gg.textContent=fmtS(gainTotal); gg.className='kv '+(gainTotal>=0?'pos':'neg');
+
+  const det=[
+    ['Capital investi',fmt(montant)],
+    ['Valeur de retrait initiale (- frais)',fmt(valeurParts0)],
+    ['Revenu brut annuel',fmt(revenuBrutAn)],
+    ['Imp\u00f4t annuel (TMI '+(tmi*100)+'% + 17,2% PS)','\u2212 '+fmt(impotAn)],
+    ['Revenu net annuel',fmt(revenuNetAn)],
+  ];
+  if(mode==='credit'){
+    det.push(['Mensualit\u00e9 de cr\u00e9dit',fmt(mensCredit)+'/mois']);
+    det.push(['Co\u00fbt total du cr\u00e9dit','\u2212 '+fmt(coutCreditTotal)]);
+  }
+  det.push(['Plus-value sur parts ('+dur+' ans)',(plusValue>=0?'+':'\u2212')+' '+fmt(Math.abs(plusValue))]);
+  document.getElementById('sDetail').innerHTML=det.map((d,i)=>
+    '<div class="freg"'+(i===det.length-1?' style="border-color:var(--sky)"':'')+'><span class="fn">'+d[0]+'</span><span class="ff">'+d[1]+'</span></div>').join('');
+
+  const scR=Math.max(0,Math.min(1,(rendNetNet-2)/(5-2)));
+  const scReval=Math.max(0,Math.min(1,(reval+0.02)/0.05));
+  const scFrais=Math.max(0,Math.min(1,(0.12-frais)/0.12));
+  const scHoriz=Math.max(0,Math.min(1,(dur-5)/(20-5)));
+  const scLevier=mode==='credit'?(tmi>=0.30?1:0.6):0.5;
+  const score=Math.round(scR*35+scReval*20+scFrais*20+scHoriz*15+scLevier*10);
+
+  const C=351.86;
+  document.getElementById('sRingFill').style.strokeDashoffset=C-(C*score/100);
+  animateNum(document.getElementById('sScoreNum'),score);
+  let label,col,desc;
+  if(score>=75){label='EXCELLENT';col='var(--green)';desc='SCPI bien calibr\u00e9e : rendement solide, frais ma\u00eetris\u00e9s, horizon adapt\u00e9.';}
+  else if(score>=55){label='SOLIDE';col='var(--sky)';desc='Bon placement de diversification. Surveille les frais et l\u2019horizon de d\u00e9tention.';}
+  else if(score>=40){label='MOYEN';col='var(--amber)';desc='Rendement net limit\u00e9 apr\u00e8s fiscalit\u00e9. Une SCPI europ\u00e9enne ou l\u2019assurance-vie peut faire mieux.';}
+  else{label='PEU ATTRACTIF';col='var(--red)';desc='Frais trop lourds ou horizon trop court pour les amortir. \u00c0 reconsid\u00e9rer.';}
+  const sv=document.getElementById('sScoreVerdict');sv.textContent=label;sv.style.color=col;
+  document.getElementById('sScoreDesc').textContent=desc;
+  const stg=document.getElementById('sScoreTag');stg.textContent=label;stg.style.color=col;stg.style.border='1px solid '+col;stg.style.background='transparent';
+
+  drawSCPIChart(ptsRev,ptsVal);
+}
+
+function drawSCPIChart(rev,val){
+  const W=600,H=160,pad=4,n=rev.length;
+  const all=rev.concat(val);
+  const mn=Math.min(0,...all),mx=Math.max(...all,1);
+  const X=i=>pad+(W-2*pad)*i/(n-1);
+  const Y=v=>H-pad-(H-2*pad)*(v-mn)/(mx-mn);
+  const path=a=>a.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(' ');
+  const zeroY=Y(0);
+  document.getElementById('sChart').innerHTML=
+    '<line x1="0" y1="'+zeroY+'" x2="'+W+'" y2="'+zeroY+'" stroke="#262A38" stroke-width="1" stroke-dasharray="3 3"/>'+
+    '<path d="'+path(val)+'" fill="none" stroke="#34D399" stroke-width="2.5"/>'+
+    '<path d="'+path(rev)+'" fill="none" stroke="#38BDF8" stroke-width="2"/>';
+}
+['sMontant','sRend','sFrais','sDur','sReval','sTaux','sCredDur'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',computeSCPI);
+});
+
+compute();
+computeSCPI();
+
+// --- Bandeau défilant : mots-clés secteur crédit ---
+(function(){
+  const mots=['Taux fixe','Capacité d\u2019emprunt','TAEG','Apport','Prêt à taux zéro','Assurance emprunteur','HCSF 35%','Reste à vivre','Amortissement','Crédit immobilier','Mise en concurrence','Négociation bancaire','Compromis','Offre de prêt','LMNP','Cashflow','Rentabilité nette','Saut de charge','Garantie','Mensualité','Différé','Taux d\u2019endettement','Dossier banque','Primo-accédant'];
+  const track=document.getElementById('tickerTrack');
+  if(track){const b=()=>mots.map(m=>'<span class="ticker-item">\u2B21 '+m+'</span><span class="ticker-sep">/</span>').join('');track.innerHTML=b()+b();}
+})();
+</script>
+</body>
+</html>

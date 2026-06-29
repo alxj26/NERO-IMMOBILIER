@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Néro Home — Monte ton dossier bancaire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:ital,wght@0,400;0,500;0,600;1,500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#08090D; --surface:#12141C; --surface2:#1A1D28; --line:#262A38;
+    --text:#F3F6FC; --muted:#8A91A6;
+    --sky:#38BDF8; --sky-bright:#7DD3FC; --indigo:#6366F1;
+    --amber:#FFB020; --red:#FF5470; --green:#34D399;
+    --grad:linear-gradient(120deg,#38BDF8,#6366F1);
+    --grad-soft:linear-gradient(120deg,rgba(56,189,248,.16),rgba(99,102,241,.16));
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.5;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--sky);color:#04121c}
+  .gt{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px}
+
+  header{border-bottom:1px solid var(--line);background:rgba(8,9,13,.8);backdrop-filter:blur(14px);position:sticky;top:0;z-index:40}
+  .hd{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:880px;margin:0 auto;padding:0 24px}
+  .logo{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.03em}
+  .logo .hex{font-size:21px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .logo small{font-family:var(--body);font-weight:500;font-size:12px;color:var(--muted);margin-left:2px}
+  .save-note{font-size:12px;color:var(--muted);font-family:var(--mono)}
+
+  /* STEPPER */
+  .stepper{display:flex;gap:6px;margin:26px 0 30px}
+  .stp{flex:1;height:4px;border-radius:3px;background:var(--surface2);overflow:hidden;position:relative}
+  .stp i{position:absolute;inset:0;background:var(--grad);transform:scaleX(0);transform-origin:left;transition:transform .4s}
+  .stp.done i,.stp.active i{transform:scaleX(1)}
+  .stp.active i{opacity:.5}
+  .step-label{font-family:var(--mono);font-size:12px;color:var(--sky);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px}
+
+  .screen{display:none;animation:fade .4s ease}
+  .screen.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,34px);letter-spacing:-.03em;line-height:1.1;margin-bottom:10px}
+  .lead{color:var(--muted);font-size:16px;margin-bottom:30px;max-width:620px}
+
+  .field{margin-bottom:22px}
+  .field label{display:block;font-size:14px;font-weight:500;margin-bottom:9px}
+  .field .hint{font-size:12.5px;color:var(--muted);font-weight:400;margin-top:5px}
+  .field input[type=text],.field input[type=number],.field select{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:14px 15px;color:var(--text);font-size:15px;font-family:var(--body);transition:border-color .2s}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--sky)}
+  .field input::placeholder{color:#4a4f60}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:560px){.row2{grid-template-columns:1fr}}
+
+  .chips{display:flex;gap:9px;flex-wrap:wrap}
+  .chip{flex:1;min-width:90px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:13px 10px;font-size:14px;font-weight:500;cursor:pointer;transition:all .18s}
+  .chip:hover{border-color:var(--muted)}
+  .chip.sel{border-color:var(--sky);background:var(--grad-soft);color:var(--sky-bright)}
+
+  .nav-btns{display:flex;justify-content:space-between;gap:14px;margin-top:34px}
+  .btn{font-family:var(--display);font-weight:600;font-size:15px;padding:14px 26px;border-radius:12px;border:none;cursor:pointer;transition:transform .15s,box-shadow .2s,border-color .2s}
+  .btn-primary{background:var(--grad);color:#04121c}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(56,189,248,.32)}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--muted)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+
+  /* RESULTS */
+  .verdict-card{border-radius:18px;padding:28px;margin-bottom:22px;border:1px solid;position:relative;overflow:hidden}
+  .verdict-card.ok{background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.3)}
+  .verdict-card.warn{background:rgba(255,176,32,.07);border-color:rgba(255,176,32,.3)}
+  .verdict-card.no{background:rgba(255,84,112,.07);border-color:rgba(255,84,112,.3)}
+  .vc-top{display:flex;align-items:center;gap:13px;margin-bottom:8px}
+  .vc-ic{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+  .ok .vc-ic{background:var(--green);color:#022}
+  .warn .vc-ic{background:var(--amber);color:#221700}
+  .no .vc-ic{background:var(--red);color:#2a0010}
+  .vc-title{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.02em}
+  .vc-sub{color:var(--muted);font-size:14.5px;margin-left:47px}
+
+  .big-num{font-family:var(--display);font-weight:700;font-size:46px;letter-spacing:-.03em;margin:6px 0}
+  .big-num .u{font-size:20px;color:var(--muted);font-weight:500}
+
+  .grid-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;margin:22px 0}
+  @media(max-width:560px){.grid-metrics{grid-template-columns:1fr}}
+  .mcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .mcard .ml{font-family:var(--mono);font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+  .mcard .mv{font-family:var(--mono);font-size:24px;font-weight:700}
+  .mcard .md{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .bar{height:6px;border-radius:4px;background:var(--surface2);margin-top:11px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+  .breakdown{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:8px 22px;margin:22px 0}
+  .brow{display:flex;justify-content:space-between;align-items:center;padding:14px 0;font-size:14.5px}
+  .brow+.brow{border-top:1px solid var(--line)}
+  .brow .bl{color:var(--muted)}
+  .brow .bv{font-family:var(--mono);font-weight:500}
+  .brow.tot{font-weight:700}.brow.tot .bl{color:var(--text);font-family:var(--display)}
+  .brow.tot .bv{font-size:17px;color:var(--sky-bright)}
+  .brow .ptz-tag{font-size:11px;background:var(--grad-soft);color:var(--sky-bright);padding:2px 8px;border-radius:6px;margin-left:8px;font-family:var(--mono)}
+
+  .scenarios{margin:22px 0}
+  .scn{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 18px;margin-bottom:10px;transition:border-color .2s}
+  .scn.best{border-color:var(--sky);background:var(--grad-soft)}
+  .scn .sd{font-family:var(--display);font-weight:600}
+  .scn .sk{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:3px}
+  .scn .sval{font-family:var(--mono);font-size:15px}
+  @media(max-width:560px){.scn{grid-template-columns:1fr 1fr;gap:10px}}
+
+  .checklist{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;margin:22px 0}
+  .checklist h3{font-family:var(--display);font-size:17px;margin-bottom:16px;display:flex;align-items:center;gap:9px}
+  .ci{display:flex;align-items:flex-start;gap:12px;padding:10px 0;font-size:14.5px}
+  .ci+.ci{border-top:1px solid rgba(38,42,56,.5)}
+  .ci .cb{width:20px;height:20px;border:1.5px solid var(--line);border-radius:6px;flex-shrink:0;margin-top:1px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent}
+  .ci .cb.ch{background:var(--grad);border-color:transparent;color:#04121c}
+  .ci .ctxt small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+
+  .alert{font-size:14px;padding:14px 16px;border-radius:11px;margin:14px 0;display:flex;gap:11px;align-items:flex-start}
+  .alert.tip{background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.25);color:var(--sky-bright)}
+  .alert.warn{background:rgba(255,176,32,.07);border:1px solid rgba(255,176,32,.25);color:var(--amber)}
+
+  .cta-final{background:linear-gradient(150deg,rgba(56,189,248,.12),rgba(99,102,241,.08));border:1px solid rgba(56,189,248,.25);border-radius:18px;padding:30px;text-align:center;margin:26px 0}
+  .cta-final h3{font-family:var(--display);font-size:21px;margin-bottom:8px}
+  .cta-final p{color:var(--muted);font-size:14.5px;margin-bottom:20px}
+  .pill-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+  .legal{font-size:11.5px;color:var(--muted);line-height:1.6;margin:30px 0;padding-top:20px;border-top:1px solid var(--line)}
+  .sec-h{font-family:var(--display);font-weight:600;font-size:18px;margin:28px 0 14px;display:flex;align-items:center;gap:9px}
+  .sec-h::before{content:'';width:18px;height:2px;background:var(--grad);border-radius:2px}
+  @media(prefers-reduced-motion:reduce){.screen,.bar i,.stp i{animation:none;transition:none}}
+
+  /* --- Bandeau défilant (ticker secteur crédit) --- */
+  .ticker{position:relative;overflow:hidden;background:linear-gradient(90deg,rgba(56,189,248,.12),rgba(99,102,241,.12));border-bottom:1px solid var(--line);height:38px;display:flex;align-items:center}
+  .ticker::before,.ticker::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none}
+  .ticker::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+  .ticker::after{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
+  .ticker-track{display:flex;white-space:nowrap;animation:ticker 38s linear infinite;will-change:transform}
+  .ticker:hover .ticker-track{animation-play-state:paused}
+  .ticker-item{display:inline-flex;align-items:center;font-family:var(--mono);font-size:12.5px;color:var(--sky-bright);letter-spacing:.02em;padding:0 4px}
+  .ticker-sep{color:var(--muted);opacity:.55;padding:0 16px;font-size:11px}
+  @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media(prefers-reduced-motion:reduce){.ticker-track{animation:none;justify-content:center;width:100%}}
+</style>
+</head>
+<body>
+<div class="ticker" aria-hidden="true"><div class="ticker-track" id="tickerTrack"></div></div>
+<header>
+  <div class="hd">
+    <a href="/" class="logo" style="text-decoration:none;color:inherit"><span class="hex">&#11041;</span>N&eacute;ro <small>Home</small></a>
+    <div class="save-note" id="saveNote">&nbsp;</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="stepper">
+    <div class="stp" data-s="0"><i></i></div>
+    <div class="stp" data-s="1"><i></i></div>
+    <div class="stp" data-s="2"><i></i></div>
+    <div class="stp" data-s="3"><i></i></div>
+  </div>
+
+  <!-- STEP 1: PROFIL -->
+  <section class="screen on" data-screen="0">
+    <div class="step-label">&Eacute;tape 1 / 4 &middot; Ton profil</div>
+    <h1>Parlons de <span class="gt">tes finances.</span></h1>
+    <p class="lead">Les chiffres que la banque regarde en premier. Sois pr&eacute;cis : c'est ce qui d&eacute;termine ta capacit&eacute; r&eacute;elle.</p>
+
+    <div class="row2">
+      <div class="field">
+        <label>Revenus nets mensuels du foyer</label>
+        <input type="number" id="rev" placeholder="4200" value="4200">
+        <div class="hint">Salaires nets + revenus stables (avant imp&ocirc;t)</div>
+      </div>
+      <div class="field">
+        <label>Charges & cr&eacute;dits en cours</label>
+        <input type="number" id="chg" placeholder="0" value="0">
+        <div class="hint">Mensualit&eacute;s de cr&eacute;dits, pensions vers&eacute;es</div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Apport personnel disponible</label>
+        <input type="number" id="app" placeholder="38000" value="38000">
+        <div class="hint">&Eacute;pargne mobilisable pour le projet</div>
+      </div>
+      <div class="field">
+        <label>Revenu fiscal de r&eacute;f&eacute;rence (N-2)</label>
+        <input type="number" id="rfr" placeholder="42000" value="42000">
+        <div class="hint">Sur ton avis d'imposition 2024 &middot; sert au PTZ</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Composition du foyer</label>
+      <div class="chips" id="foyer">
+        <div class="chip sel" data-v="1">1 pers.</div>
+        <div class="chip" data-v="2">2 pers.</div>
+        <div class="chip" data-v="3">3 pers.</div>
+        <div class="chip" data-v="4">4 pers.</div>
+        <div class="chip" data-v="5">5 +</div>
+      </div>
+    </div>
+
+    <div class="nav-btns">
+      <span></span>
+      <button class="btn btn-primary" onclick="go(1)">Continuer &rarr;</button>
+    </div>
+  </section>
+
+  <!-- STEP 2: PROJET -->
+  <section class="screen" data-screen="1">
+    <div class="step-label">&Eacute;tape 2 / 4 &middot; Ton projet</div>
+    <h1>Le bien que <span class="gt">tu vises.</span></h1>
+    <p class="lead">Pr&eacute;cise ton projet pour calculer les frais r&eacute;els et v&eacute;rifier ton &eacute;ligibilit&eacute; au pr&ecirc;t &agrave; taux z&eacute;ro.</p>
+
+    <div class="row2">
+      <div class="field">
+        <label>Prix du bien</label>
+        <input type="number" id="prix" placeholder="320000" value="320000">
+        <div class="hint">Prix de vente, hors frais</div>
+      </div>
+      <div class="field">
+        <label>Dur&eacute;e du pr&ecirc;t souhait&eacute;e</label>
+        <select id="dur">
+          <option value="15">15 ans</option>
+          <option value="20">20 ans</option>
+          <option value="25" selected>25 ans</option>
+          <option value="27">27 ans</option>
+        </select>
+        <div class="hint">Plus long = mensualit&eacute; plus basse, co&ucirc;t total plus &eacute;lev&eacute;</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Taux d'int&eacute;r&ecirc;t (hors assurance)</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="number" id="taux" step="0.01" placeholder="3.50" style="max-width:140px" oninput="syncTauxNote()">
+        <span style="font-family:var(--mono);color:var(--muted);font-size:14px">% / an</span>
+        <button type="button" onclick="document.getElementById('taux').value='';syncTauxNote()" style="font-size:12px;color:var(--sky);background:none;border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer">Remettre le taux du march&eacute;</button>
+      </div>
+      <div class="hint" id="tauxNote">&nbsp;</div>
+    </div>
+
+    <div class="field">
+      <label>Type de bien</label>
+      <div class="chips" id="typ">
+        <div class="chip sel" data-v="ancien">Ancien</div>
+        <div class="chip" data-v="neuf_collectif">Neuf (appart.)</div>
+        <div class="chip" data-v="neuf_maison">Neuf (maison)</div>
+      </div>
+      <div class="hint" style="margin-top:8px">Le neuf r&eacute;duit les frais de notaire (~2-3% au lieu de ~8%) et ouvre le PTZ.</div>
+    </div>
+
+    <div class="field">
+      <label>Zone g&eacute;ographique <span class="hint" style="display:inline">(d&eacute;termine le PTZ)</span></label>
+      <div class="chips" id="zone">
+        <div class="chip" data-v="Abis">A bis</div>
+        <div class="chip" data-v="A">A</div>
+        <div class="chip sel" data-v="B1">B1</div>
+        <div class="chip" data-v="B2">B2</div>
+        <div class="chip" data-v="C">C</div>
+      </div>
+      <div class="hint" style="margin-top:8px">Rennes &amp; m&eacute;tropole = B1 &middot; Paris = A bis &middot; petites villes = C</div>
+    </div>
+
+    <div class="field">
+      <label>Premier achat de ta r&eacute;sidence principale ?</label>
+      <div class="chips" id="primo">
+        <div class="chip sel" data-v="1">Oui, primo-acc&eacute;dant</div>
+        <div class="chip" data-v="0">Non, j'ai d&eacute;j&agrave; &eacute;t&eacute; propri&eacute;taire</div>
+      </div>
+      <div class="hint" style="margin-top:8px">Le PTZ est r&eacute;serv&eacute; aux primo-acc&eacute;dants (pas propri&eacute;taire de sa R.P. depuis 2 ans).</div>
+    </div>
+
+    <div class="nav-btns">
+      <button class="btn btn-ghost" onclick="go(0)">&larr; Retour</button>
+      <button class="btn btn-primary" onclick="go(2);compute()">Analyser mon projet &rarr;</button>
+    </div>
+  </section>
+
+  <!-- STEP 3: RESULTATS -->
+  <section class="screen" data-screen="2">
+    <div class="step-label">&Eacute;tape 3 / 4 &middot; Diagnostic</div>
+    <h1>Le verdict <span class="gt">N&eacute;ro.</span></h1>
+    <p class="lead">Voici ce que dit l'analyse, avec les m&ecirc;mes r&egrave;gles qu'une banque (HCSF).</p>
+
+    <div class="verdict-card ok" id="verdictCard">
+      <div class="vc-top">
+        <div class="vc-ic" id="vcIc">&#10003;</div>
+        <div class="vc-title" id="vcTitle">Projet faisable</div>
+      </div>
+      <div class="vc-sub" id="vcSub">Ton dossier tient la route.</div>
+    </div>
+
+    <div class="grid-metrics">
+      <div class="mcard">
+        <div class="ml">Capacit&eacute; d'emprunt totale</div>
+        <div class="mv gt" id="mCap">0 &euro;</div>
+        <div class="md" id="mCapD">pr&ecirc;t bancaire + apport + PTZ</div>
+      </div>
+      <div class="mcard">
+        <div class="ml">Budget bien maximum</div>
+        <div class="mv" id="mBudget">0 &euro;</div>
+        <div class="md">frais de notaire d&eacute;duits</div>
+      </div>
+      <div class="mcard">
+        <div class="ml">Taux d'endettement</div>
+        <div class="mv" id="mEndet">0 %</div>
+        <div class="bar"><i id="barEndet"></i></div>
+      </div>
+      <div class="mcard">
+        <div class="ml">Reste &agrave; vivre</div>
+        <div class="mv" id="mRav">0 &euro;</div>
+        <div class="bar"><i id="barRav"></i></div>
+      </div>
+    </div>
+
+    <div class="sec-h">Ton plan de financement</div>
+    <div class="breakdown" id="breakdown"></div>
+
+    <div id="ptzBlock"></div>
+
+    <div class="sec-h">Compare tes sc&eacute;narios de dur&eacute;e</div>
+    <div class="scenarios" id="scenarios"></div>
+
+    <div class="nav-btns">
+      <button class="btn btn-ghost" onclick="go(1)">&larr; Ajuster</button>
+      <button class="btn btn-primary" onclick="go(3)">Pr&eacute;parer mon dossier &rarr;</button>
+    </div>
+  </section>
+
+  <!-- STEP 4: DOSSIER -->
+  <section class="screen" data-screen="3">
+    <div class="step-label">&Eacute;tape 4 / 4 &middot; Ton dossier</div>
+    <h1>Pr&ecirc;t pour <span class="gt">la banque.</span></h1>
+    <p class="lead">Voici les pi&egrave;ces &agrave; r&eacute;unir et la synth&egrave;se de ton dossier. Coche au fur et &agrave; mesure.</p>
+
+    <div class="checklist">
+      <h3>&#128203; Pi&egrave;ces &agrave; fournir</h3>
+      <div id="checkItems"></div>
+    </div>
+
+    <div class="cta-final">
+      <h3>Ton dossier complet t'attend</h3>
+      <p>Plan de financement PDF, profil emprunteur, simulations d&eacute;taill&eacute;es &mdash; ou laisse N&eacute;ro n&eacute;gocier ton cr&eacute;dit comme courtier IOBSP.</p>
+      <div class="pill-row">
+        <button class="btn btn-primary" onclick="genPDF()">Exporter le dossier PDF &mdash; 29&euro;</button>
+        <a href="/pilote" class="btn btn-ghost" style="text-decoration:none;display:inline-block">&Ecirc;tre rappel&eacute; par N&eacute;ro</a>
+      </div>
+    </div>
+
+    <div class="nav-btns">
+      <button class="btn btn-ghost" onclick="go(2)">&larr; Retour au diagnostic</button>
+      <span></span>
+    </div>
+
+    <div class="legal">
+      <b>N&eacute;ro</b> &mdash; service con&ccedil;u et op&eacute;r&eacute; par un professionnel titulaire des habilitations IOBSP, carte professionnelle T et certification AMF.
+      Calculs bas&eacute;s sur les r&egrave;gles HCSF (taux d'endettement max 35% assurance comprise) et le bar&egrave;me PTZ 2026 (d&eacute;cret n&deg;2025-299 du 29 mars 2025, plafonds inchang&eacute;s par la loi de finances 2026).
+      R&eacute;sultats indicatifs : taux d'int&eacute;r&ecirc;t, assurance et conditions r&eacute;elles d&eacute;pendent de chaque banque. Ne constitue pas un conseil personnalis&eacute; au sens r&eacute;glementaire. Mentions ORIAS / ACPR / m&eacute;diateur &agrave; afficher avant mise en ligne.
+    </div>
+  </section>
+</div>
+
+<script>
+/* ============ DONNÉES RÉGLEMENTAIRES 2026 ============ */
+// Plafonds de coût d'opération PTZ par zone et taille foyer (décret 2025-299)
+const PTZ_PLAFOND_OP = {
+  Abis:[150000,225000,270000,315000,360000], A:[150000,225000,270000,315000,360000],
+  B1:[135000,202500,243000,283500,324000], B2:[110000,165000,198000,231000,264000],
+  C:[100000,150000,180000,210000,240000]
+};
+// Plafonds de ressources RFR (tranche 1 la plus basse) — approximation barème 2025/2026
+const PTZ_RFR_T1 = {Abis:[28500,42750,51300,59850,68400], A:[28500,42750,51300,59850,68400],
+  B1:[26000,39000,46800,54600,62400], B2:[24000,36000,43200,50400,57600], C:[22000,33000,39600,46200,52800]};
+const PTZ_RFR_T2 = {Abis:[31500,47250,56700,66150,75600], A:[31500,47250,56700,66150,75600],
+  B1:[28500,42750,51300,59850,68400], B2:[26500,39750,47700,55650,63600], C:[24500,36750,44100,51450,58800]};
+const PTZ_RFR_T3 = {Abis:[37500,56250,67500,78750,90000], A:[37500,56250,67500,78750,90000],
+  B1:[33500,50250,60300,70350,80400], B2:[30500,45750,54900,64050,73200], C:[28500,42750,51300,59850,68400]};
+// Quotités neuf collectif (T1..T4) / maison neuve (moitié)
+const QUOTITE_COLLECTIF=[0.50,0.40,0.40,0.20], QUOTITE_MAISON=[0.30,0.20,0.20,0.10];
+
+/* ============ BARÈME DE TAUX (mis à jour mensuellement) ============ */
+// Taux moyens de marché par durée. Source : baromètres courtiers (Pretto, CAFPI, Meilleurtaux).
+// À régénérer chaque 1er du mois — voir TAUX_MAJ pour la fraîcheur.
+const BAREME_TAUX = {
+  publie: "2026-06-29",        // date de publication du barème
+  valide_jusqu: "2026-07-01",  // 1er du mois suivant : au-delà, le taux est "à rafraîchir"
+  source: "Baromètres courtiers (moyenne marché)",
+  taux: { 15: 0.0330, 20: 0.0344, 25: 0.0350, 27: 0.0358 } // par durée (années)
+};
+const ASSURANCE_ANNUEL = 0.0034; // assurance emprunteur indicative, % du capital / an
+
+// taux par défaut pour une durée donnée (interpole si durée hors barème)
+function tauxDefaut(annees){
+  const t = BAREME_TAUX.taux;
+  if (t[annees] != null) return t[annees];
+  const cles = Object.keys(t).map(Number).sort((a,b)=>a-b);
+  if (annees <= cles[0]) return t[cles[0]];
+  if (annees >= cles[cles.length-1]) return t[cles[cles.length-1]];
+  for (let i=0;i<cles.length-1;i++){
+    if (annees>=cles[i] && annees<=cles[i+1]){
+      const r=(annees-cles[i])/(cles[i+1]-cles[i]);
+      return t[cles[i]]+(t[cles[i+1]]-t[cles[i]])*r;
+    }
+  }
+  return 0.035;
+}
+// taux effectivement utilisé : valeur saisie par l'utilisateur si présente, sinon défaut
+function tauxCourant(annees){
+  const champ = document.getElementById('taux');
+  if (champ && champ.value !== '' && !isNaN(+champ.value)) return (+champ.value)/100;
+  return tauxDefaut(annees);
+}
+// fraîcheur du barème
+function baremePerime(){
+  return new Date() >= new Date(BAREME_TAUX.valide_jusqu+'T00:00:00');
+}
+// note sous le champ taux : référence marché + fraîcheur, et placeholder dynamique
+function syncTauxNote(){
+  const champ=document.getElementById('taux');
+  const dur=+(document.getElementById('dur')?.value||25);
+  const ref=tauxDefaut(dur);
+  if(champ) champ.placeholder=(ref*100).toFixed(2);
+  const note=document.getElementById('tauxNote');
+  if(!note) return;
+  const dPubli=new Date(BAREME_TAUX.publie+'T00:00:00')
+    .toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  const manuel=(champ && champ.value!=='' && !isNaN(+champ.value));
+  let txt='';
+  if(manuel){
+    txt='Taux personnalis\u00e9 : '+(+champ.value).toFixed(2)+'%. Laisse vide pour utiliser le taux moyen du march\u00e9.';
+  } else if(baremePerime()){
+    txt='\u26a0 Taux moyen march\u00e9 sur '+dur+' ans : '+(ref*100).toFixed(2)+'% \u2014 bar\u00e8me du '+dPubli+', \u00e0 rafra\u00eechir ce mois-ci.';
+  } else {
+    txt='Taux moyen march\u00e9 sur '+dur+' ans : '+(ref*100).toFixed(2)+'% \u00b7 bar\u00e8me du '+dPubli+' (source : '+BAREME_TAUX.source+'). Modifiable.';
+  }
+  note.innerHTML=txt;
+}
+const fmt=n=>Math.round(n).toLocaleString('fr-FR')+' \u20ac';
+const fmt0=n=>Math.round(n).toLocaleString('fr-FR');
+
+const state={foyer:1, typ:'ancien', zone:'B1', primo:1};
+
+/* chips */
+document.querySelectorAll('.chips').forEach(group=>{
+  group.querySelectorAll('.chip').forEach(chip=>{
+    chip.onclick=()=>{
+      group.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));
+      chip.classList.add('sel');
+      state[group.id]=isNaN(+chip.dataset.v)?chip.dataset.v:+chip.dataset.v;
+    };
+  });
+});
+
+/* navigation */
+let cur=0;
+function go(n){
+  cur=n;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',+s.dataset.screen===n));
+  document.querySelectorAll('.stp').forEach(s=>{
+    const i=+s.dataset.s; s.classList.toggle('done',i<n); s.classList.toggle('active',i===n);
+  });
+  document.getElementById('saveNote').textContent='\u2713 Progression sauvegard\u00e9e';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* mensualité d'un capital */
+function mensualite(capital,annees,taux){
+  const n=annees*12,r=taux/12;
+  return capital*r/(1-Math.pow(1+r,-n));
+}
+/* capital empruntable à partir d'une mensualité dispo, assurance incluse */
+function capitalDepuisMensualite(mensDispo,annees,taux){
+  const n=annees*12,r=taux/12,a=ASSURANCE_ANNUEL/12;
+  // mens = capital*(r/(1-(1+r)^-n)) + capital*a  → capital*(facteur+a)
+  const facteur=r/(1-Math.pow(1+r,-n));
+  return mensDispo/(facteur+a);
+}
+function fraisNotaire(prix,typ){
+  if(typ==='ancien') return prix*0.078;
+  return prix*0.025; // neuf
+}
+
+/* tranche PTZ selon RFR pondéré */
+function trancheePTZ(rfr,zone,foyer){
+  const idx=Math.min(foyer-1,4);
+  if(!state.primo) return 0;
+  if(rfr<=PTZ_RFR_T1[zone][idx]) return 1;
+  if(rfr<=PTZ_RFR_T2[zone][idx]) return 2;
+  if(rfr<=PTZ_RFR_T3[zone][idx]) return 3;
+  // tranche 4 : plafond élargi ~ +20%
+  if(rfr<=PTZ_RFR_T3[zone][idx]*1.25) return 4;
+  return 0; // non éligible
+}
+function montantPTZ(prix,typ,zone,foyer,tranche){
+  if(tranche===0||typ==='ancien') return 0; // ancien éligible seulement B2/C avec travaux — simplifié ici
+  const idx=Math.min(foyer-1,4);
+  const opPlaf=Math.min(prix,PTZ_PLAFOND_OP[zone][idx]);
+  const q=(typ==='neuf_maison'?QUOTITE_MAISON:QUOTITE_COLLECTIF)[tranche-1];
+  return opPlaf*q;
+}
+
+function compute(){
+  const rev=+document.getElementById('rev').value||0;
+  const chg=+document.getElementById('chg').value||0;
+  const app=+document.getElementById('app').value||0;
+  const rfr=+document.getElementById('rfr').value||0;
+  const prix=+document.getElementById('prix').value||0;
+  const dur=+document.getElementById('dur').value;
+  const {foyer,typ,zone}=state;
+
+  // 1. mensualité max HCSF (35% des revenus - charges)
+  const mensMax=Math.max(rev*0.35-chg,0);
+  // 2. PTZ
+  const tr=trancheePTZ(rfr,zone,foyer);
+  const ptz=montantPTZ(prix,typ,zone,foyer,tr);
+  // PTZ : différé, on l'exclut du calcul de mensualité initiale (simplifié : remboursé après)
+  // 3. capital prêt bancaire classique depuis la mensualité dispo
+  const tauxUtil=tauxCourant(dur);
+  const capitalBanque=capitalDepuisMensualite(mensMax,dur,tauxUtil);
+  // 4. enveloppe totale
+  const enveloppe=capitalBanque+app+ptz;
+  // 5. budget bien (on retire frais de notaire estimés sur le budget)
+  // frais ≈ taux * budget → budget = enveloppe/(1+tauxFrais)
+  const tauxFrais=(typ==='ancien'?0.078:0.025);
+  const budgetBien=enveloppe/(1+tauxFrais);
+  const frais=budgetBien*tauxFrais;
+
+  const mens=mensualite(capitalBanque,dur,tauxUtil)+capitalBanque*ASSURANCE_ANNUEL/12;
+  const endet=rev>0?((mens+chg)/rev*100):0;
+  const rav=rev-mens-chg;
+  const ravSeuil=foyer>=3?1500:1100;
+
+  // verdict vs projet visé
+  const ecart=budgetBien-prix;
+  let vClass,vIc,vTitle,vSub;
+  if(budgetBien>=prix && rav>=ravSeuil){
+    vClass='ok';vIc='\u2713';vTitle='Projet faisable';
+    vSub='Ton budget couvre ce bien avec '+fmt(ecart)+' de marge. Dossier solide.';
+  } else if(budgetBien>=prix*0.92 && rav>=ravSeuil*0.9){
+    vClass='warn';vIc='!';vTitle='Faisable sous conditions';
+    vSub='C\u2019est serr\u00e9. Augmente l\u2019apport, allonge la dur\u00e9e, ou vise un peu en dessous de '+fmt(budgetBien)+'.';
+  } else {
+    vClass='no';vIc='\u2715';vTitle='\u00c0 retravailler';
+    vSub='Ton budget atteignable est '+fmt(budgetBien)+', soit '+fmt(prix-budgetBien)+' sous ton projet. Voici comment combler l\u2019\u00e9cart.';
+  }
+
+  const vc=document.getElementById('verdictCard');
+  vc.className='verdict-card '+vClass;
+  document.getElementById('vcIc').textContent=vIc;
+  document.getElementById('vcTitle').textContent=vTitle;
+  document.getElementById('vcSub').textContent=vSub;
+
+  animateNum(document.getElementById('mCap'),enveloppe,true);
+  document.getElementById('mBudget').textContent=fmt(budgetBien);
+  document.getElementById('mEndet').textContent=endet.toFixed(1)+' %';
+  document.getElementById('mRav').textContent=fmt(rav);
+
+  const be=document.getElementById('barEndet');
+  be.style.width=Math.min(endet/35*100,100)+'%';
+  be.style.background=endet>35?'var(--red)':endet>33?'var(--amber)':'var(--grad)';
+  const br=document.getElementById('barRav');
+  br.style.width=Math.min(rav/2500*100,100)+'%';
+  br.style.background=rav>=ravSeuil?'var(--grad)':'var(--amber)';
+
+  // breakdown
+  let bd='';
+  bd+=row('Pr\u00eat bancaire ('+dur+' ans \u00e0 '+(tauxUtil*100).toFixed(2)+'%)',fmt(capitalBanque));
+  bd+=row('Apport personnel',fmt(app));
+  if(ptz>0) bd+=row('Pr\u00eat \u00e0 taux z\u00e9ro <span class="ptz-tag">PTZ tranche '+tr+'</span>',fmt(ptz));
+  bd+=row('Frais de notaire ('+(tauxFrais*100).toFixed(1)+'%)','\u2212 '+fmt(frais));
+  bd+='<div class="brow tot"><span class="bl">Budget bien maximum</span><span class="bv">'+fmt(budgetBien)+'</span></div>';
+  document.getElementById('breakdown').innerHTML=bd;
+
+  // PTZ block
+  const pb=document.getElementById('ptzBlock');
+  if(ptz>0){
+    pb.innerHTML='<div class="alert tip"><span>\u2728</span><div>Tu es \u00e9ligible au <b>PTZ tranche '+tr+'</b> : '+fmt(ptz)+' sans int\u00e9r\u00eats, en zone '+zone+'. C\u2019est autant d\u2019\u00e9conomies d\u2019int\u00e9r\u00eats sur ton cr\u00e9dit.</div></div>';
+  } else if(state.primo && typ!=='ancien'){
+    pb.innerHTML='<div class="alert warn"><span>\u2139</span><div>Tes revenus d\u00e9passent les plafonds PTZ pour la zone '+zone+'. Pas de PTZ sur ce projet.</div></div>';
+  } else if(typ==='ancien' && state.primo){
+    pb.innerHTML='<div class="alert warn"><span>\u2139</span><div>Dans l\u2019ancien, le PTZ n\u2019est possible qu\u2019en zones B2/C avec 25% de travaux. Projet calcul\u00e9 sans PTZ.</div></div>';
+  } else { pb.innerHTML=''; }
+
+  // scenarios
+  const durs=[15,20,25,27];
+  const champTaux=document.getElementById('taux');
+  const tauxManuel=(champTaux && champTaux.value!=='' && !isNaN(+champTaux.value));
+  let sc='';
+  durs.forEach(d=>{
+    const td=tauxManuel?(+champTaux.value/100):tauxDefaut(d);
+    const cap=capitalDepuisMensualite(mensMax,d,td);
+    const m=mensualite(cap,d,td)+cap*ASSURANCE_ANNUEL/12;
+    const coutTotal=m*d*12-cap;
+    const best=d===dur?' best':'';
+    sc+='<div class="scn'+best+'">'+
+      '<div class="sd">'+d+' ans'+(best?' \u2713':'')+'</div>'+
+      '<div><span class="sk">Taux</span><span class="sval">'+(td*100).toFixed(2)+'%</span></div>'+
+      '<div><span class="sk">Mensualit\u00e9</span><span class="sval">'+fmt(m)+'</span></div>'+
+      '<div><span class="sk">Capacit\u00e9 pr\u00eat</span><span class="sval">'+fmt(cap)+'</span></div>'+
+      '</div>';
+  });
+  document.getElementById('scenarios').innerHTML=sc;
+
+  buildChecklist(ptz>0,typ);
+
+  // capture pour génération PDF
+  const tauxFraisPct=(typ==='ancien'?7.8:2.5);
+  RESULT={
+    rev,chg,app,rfr,prix,dur,foyer,typ,zone,primo:state.primo,
+    mensMax,capitalBanque,ptz,tr,enveloppe,budgetBien,frais,tauxFraisPct,
+    mens,endet,rav,ravSeuil,vClass,vTitle,vSub,
+    taux:tauxUtil, tauxManuel,
+    coutCredit:(mens*dur*12-capitalBanque),
+    apportPct:(app/Math.max(budgetBien,1)*100)
+  };
+}
+let RESULT=null;
+
+function row(l,v){return '<div class="brow"><span class="bl">'+l+'</span><span class="bv">'+v+'</span></div>';}
+
+function animateNum(el,to,euro){
+  const from=parseInt(el.textContent.replace(/\D/g,''))||0;
+  const start=performance.now(),d=600;
+  function tick(t){
+    const p=Math.min((t-start)/d,1),e=1-Math.pow(1-p,3),val=from+(to-from)*e;
+    el.textContent=euro?fmt(val):fmt0(val);
+    if(p<1)requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function buildChecklist(hasPTZ,typ){
+  const items=[
+    ['Pi\u00e8ce d\u2019identit\u00e9','Carte d\u2019identit\u00e9 ou passeport en cours de validit\u00e9, pour chaque emprunteur'],
+    ['3 derniers bulletins de salaire','Ou 2 derniers bilans pour les ind\u00e9pendants'],
+    ['2 derniers avis d\u2019imposition','Justifie tes revenus et ton RFR'],
+    ['3 derniers relev\u00e9s de compte','Tous comptes : la banque analyse ta gestion'],
+    ['Justificatif d\u2019apport','Relev\u00e9 d\u2019\u00e9pargne, donation, \u00e9pargne salariale'],
+    ['Justificatif de domicile','Facture de moins de 3 mois'],
+    ['Contrat de travail','Et attestation employeur si CDI hors p\u00e9riode d\u2019essai'],
+    ['Compromis de vente','D\u00e8s qu\u2019il est sign\u00e9, pour boucler l\u2019offre de pr\u00eat']
+  ];
+  if(hasPTZ) items.push(['Justificatifs PTZ','Avis d\u2019imposition N-2 + attestation de primo-accession']);
+  if(typ!=='ancien') items.push(['Contrat de r\u00e9servation (VEFA)','Pour un achat dans le neuf sur plan']);
+  let h='';
+  items.forEach((it,i)=>{
+    h+='<div class="ci"><div class="cb" onclick="this.classList.toggle(\'ch\');this.textContent=this.classList.contains(\'ch\')?\'\u2713\':\'\'"></div>'+
+       '<div class="ctxt">'+it[0]+'<small>'+it[1]+'</small></div></div>';
+  });
+  document.getElementById('checkItems').innerHTML=h;
+}
+
+/* ============ GÉNÉRATION PDF (jsPDF) ============ */
+function amortAnnuel(capital,annees,taux){
+  const n=annees*12,r=taux/12,m=mensualite(capital,annees,taux);
+  let solde=capital,capAn=0,intAn=0,rows=[];
+  for(let mois=1;mois<=n;mois++){
+    const i=solde*r,p=m-i; solde-=p; capAn+=p; intAn+=i;
+    if(mois%12===0){rows.push([mois/12,Math.round(capAn),Math.round(intAn),Math.round(Math.max(solde,0))]);capAn=0;intAn=0;}
+  }
+  return rows;
+}
+function genPDF(){
+  if(!RESULT){alert('Lance d\u2019abord le diagnostic.');return;}
+  const R=RESULT;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const W=210,H=297,MX=20;
+  const eur=n=>Math.round(n).toLocaleString('fr-FR')+' \u20ac';
+  const ref='NERO-'+new Date().getFullYear()+'-'+Math.floor(1000+Math.random()*9000);
+  const today=new Date().toLocaleDateString('fr-FR');
+  const SKY=[56,189,248],INK=[18,20,28],MUT=[138,145,166],LINE=[226,230,239];
+
+  function header(sub){
+    doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(...INK);
+    doc.text('\u2B21 N\u00e9ro',MX,18);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(...MUT);
+    doc.text('Dossier '+ref+'  \u00b7  '+sub,W-MX,18,{align:'right'});
+    doc.setDrawColor(...LINE);doc.setLineWidth(.3);doc.line(MX,21,W-MX,21);
+  }
+  function foot(p){
+    doc.setDrawColor(...LINE);doc.setLineWidth(.2);doc.line(MX,H-16,W-MX,H-16);
+    doc.setFontSize(6.5);doc.setTextColor(...MUT);
+    doc.text('\u2B21 N\u00e9ro \u2014 courtier IOBSP \u00b7 Carte T \u00b7 AMF',MX,H-12);
+    doc.text('Page '+p+' / 4',W-MX,H-12,{align:'right'});
+  }
+  function sec(t,y){doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(14,165,233);doc.text(t.toUpperCase(),MX,y);return y+6;}
+  function kv(label,val,y,bold){
+    doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.setTextColor(...INK);
+    doc.text(label,MX,y);
+    doc.setFont('helvetica',bold?'bold':'normal');doc.text(val,W-MX,y,{align:'right'});
+    doc.setDrawColor(...LINE);doc.setLineWidth(.2);doc.line(MX,y+2.5,W-MX,y+2.5);
+    return y+8;
+  }
+
+  /* ---- PAGE 1 : COUVERTURE ---- */
+  doc.setFillColor(8,9,13);doc.rect(0,0,W,H,'F');
+  doc.setFillColor(16,18,28);doc.rect(0,180,W,H-180,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(26);doc.setTextColor(243,246,252);
+  doc.text('\u2B21 N\u00e9ro',MX,42);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(...MUT);
+  doc.text('DOSSIER DE FINANCEMENT IMMOBILIER',MX,49);
+  // badge
+  doc.setDrawColor(56,189,248);doc.setLineWidth(.4);doc.roundedRect(MX,90,82,9,4,4,'S');
+  doc.setFontSize(8);doc.setTextColor(125,211,252);
+  doc.text('\u2B21 Pr\u00e9par\u00e9 par un courtier certifi\u00e9 IOBSP',MX+5,95.8);
+  // accent line
+  doc.setFillColor(...SKY);doc.roundedRect(MX,140,22,1.6,1,1,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(30);doc.setTextColor(243,246,252);
+  doc.text('Dossier',MX,160);
+  doc.setTextColor(...SKY);
+  doc.text('pr\u00eat pour',MX+52,160);
+  doc.text('la banque.',MX,174);
+  doc.setFont('helvetica','normal');doc.setFontSize(10.5);doc.setTextColor(...MUT);
+  doc.text(doc.splitTextToSize('Synth\u00e8se compl\u00e8te du projet : capacit\u00e9 d\u2019emprunt, plan de financement, tableau d\u2019amortissement et pi\u00e8ces justificatives. Analys\u00e9 selon les r\u00e8gles HCSF en vigueur.',150),MX,188);
+  // meta
+  doc.setDrawColor(38,42,56);doc.line(MX,250,W-MX,250);
+  doc.setFontSize(7.5);doc.setTextColor(...MUT);
+  doc.text('R\u00e9f\u00e9rence',MX,258);doc.text('Date d\u2019\u00e9dition',MX+70,258);doc.text('Projet',MX+135,258);
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(243,246,252);
+  doc.text(ref,MX,263);doc.text(today,MX+70,263);doc.text(eur(R.prix),MX+135,263);
+
+  /* ---- PAGE 2 : SYNTHÈSE ---- */
+  doc.addPage();header('Synth\u00e8se');
+  let y=32;
+  y=sec('Verdict de faisabilit\u00e9',y);
+  const okCol=R.vClass==='ok',vColBg=okCol?[236,253,245]:R.vClass==='warn'?[255,251,235]:[254,242,242];
+  const vColBd=okCol?[167,243,208]:R.vClass==='warn'?[253,230,138]:[254,202,202];
+  const vDot=okCol?[52,211,153]:R.vClass==='warn'?[255,176,32]:[255,84,112];
+  doc.setFillColor(...vColBg);doc.setDrawColor(...vColBd);doc.setLineWidth(.4);
+  doc.roundedRect(MX,y,W-2*MX,22,3,3,'FD');
+  doc.setFillColor(...vDot);doc.circle(MX+9,y+11,4.5,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(255,255,255);
+  doc.text(okCol?'\u2713':(R.vClass==='warn'?'!':'\u2715'),MX+9,y+12.5,{align:'center'});
+  doc.setFontSize(12);doc.setTextColor(...INK);doc.text(R.vTitle,MX+18,y+9);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(75,85,99);
+  doc.text(doc.splitTextToSize(R.vSub,150),MX+18,y+15);
+  y+=30;
+
+  y=sec('Indicateurs cl\u00e9s',y);
+  const kpis=[['Mensualit\u00e9 (assur. incl.)',eur(R.mens),'sur '+R.dur+' ans \u00b7 '+(R.taux*100).toFixed(2)+'%'+(R.tauxManuel?' (saisi)':' (march\u00e9)')],
+              ['Taux d\u2019endettement',R.endet.toFixed(1)+'%','plafond HCSF : 35%'],
+              ['Reste \u00e0 vivre',eur(R.rav),'par mois']];
+  const kw=(W-2*MX-12)/3;
+  kpis.forEach((k,i)=>{
+    const kx=MX+i*(kw+6);
+    doc.setDrawColor(...LINE);doc.setLineWidth(.3);doc.roundedRect(kx,y,kw,24,2.5,2.5,'S');
+    doc.setFontSize(6.5);doc.setTextColor(...MUT);doc.text(k[0].toUpperCase(),kx+5,y+6);
+    doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(i===0?14:18,i===0?165:20,i===0?233:28);
+    doc.text(k[1],kx+5,y+14);
+    doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(...MUT);doc.text(k[2],kx+5,y+19);
+  });
+  y+=32;
+
+  y=sec('Profil emprunteur',y);
+  y=kv('Revenus nets mensuels du foyer',eur(R.rev),y);
+  y=kv('Charges & cr\u00e9dits en cours',eur(R.chg),y);
+  y=kv('Apport personnel',eur(R.app),y);
+  y=kv('Composition du foyer',R.foyer+(R.foyer>1?' personnes':' personne'),y);
+  y+=4;
+  y=sec('Caract\u00e9ristiques du projet',y);
+  const typLabel={ancien:'R\u00e9sidence principale \u2014 ancien',neuf_collectif:'R\u00e9sidence principale \u2014 neuf (appartement)',neuf_maison:'R\u00e9sidence principale \u2014 neuf (maison)'}[R.typ];
+  y=kv('Nature',typLabel,y);
+  y=kv('Zone g\u00e9ographique',R.zone,y);
+  y=kv('Prix du bien',eur(R.prix),y);
+  y=kv('Dur\u00e9e souhait\u00e9e',R.dur+' ans',y);
+  foot(2);
+
+  /* ---- PAGE 3 : FINANCEMENT + PTZ + SCÉNARIOS ---- */
+  doc.addPage();header('Plan de financement');
+  y=32;y=sec('Plan de financement',y);
+  y=kv('Pr\u00eat bancaire ('+R.dur+' ans \u00e0 '+(R.taux*100).toFixed(2)+'%)',eur(R.capitalBanque),y);
+  y=kv('Apport personnel',eur(R.app),y);
+  if(R.ptz>0) y=kv('Pr\u00eat \u00e0 taux z\u00e9ro (PTZ tranche '+R.tr+')',eur(R.ptz),y);
+  y=kv('Frais de notaire ('+R.tauxFraisPct.toFixed(1)+'%)','\u2212 '+eur(R.frais),y);
+  y=kv('Budget bien maximum',eur(R.budgetBien),y,true);
+  y+=4;
+
+  // PTZ block conditionnel
+  if(R.ptz>0){
+    doc.setFillColor(240,249,255);doc.setDrawColor(...SKY);doc.setLineWidth(.4);
+    const bh=20;doc.roundedRect(MX,y,W-2*MX,bh,3,3,'FD');
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(14,165,233);
+    doc.text('\u2728 \u00c9ligible au Pr\u00eat \u00e0 Taux Z\u00e9ro \u2014 tranche '+R.tr,MX+5,y+7);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(75,85,99);
+    doc.text(doc.splitTextToSize('Montant PTZ : '+eur(R.ptz)+' sans int\u00e9r\u00eats (zone '+R.zone+', d\u00e9cret n\u00b02025-299). Ce pr\u00eat aid\u00e9 r\u00e9duit le co\u00fbt total du financement et renforce le dossier.',W-2*MX-10),MX+5,y+13);
+    y+=bh+6;
+  }
+
+  y=sec('Co\u00fbts du cr\u00e9dit',y);
+  y=kv('Co\u00fbt total du cr\u00e9dit (int\u00e9r\u00eats + assurance)',eur(R.coutCredit),y);
+  y=kv('Capital emprunt\u00e9 (pr\u00eat principal)',eur(R.capitalBanque),y);
+  y+=4;
+
+  y=sec('Comparaison des sc\u00e9narios de dur\u00e9e',y);
+  // table header
+  doc.setFillColor(246,248,252);doc.rect(MX,y-4,W-2*MX,8,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(107,114,128);
+  doc.text('DUR\u00c9E',MX+3,y);doc.text('TAUX',MX+38,y);doc.text('MENSUALIT\u00c9',MX+62,y);doc.text('CAPACIT\u00c9 PR\u00caT',MX+108,y);doc.text('CO\u00dbT CR\u00c9DIT',W-MX-3,y,{align:'right'});
+  y+=8;
+  [15,20,25,27].forEach(d=>{
+    const td=R.tauxManuel?R.taux:tauxDefaut(d);
+    const c=capitalDepuisMensualite(R.mensMax,d,td);
+    const mm=mensualite(c,d,td)+c*ASSURANCE_ANNUEL/12;
+    const ct=mm*d*12-c;const best=d===R.dur;
+    if(best){doc.setFillColor(240,249,255);doc.rect(MX,y-4,W-2*MX,8,'F');}
+    doc.setFont('helvetica',best?'bold':'normal');doc.setFontSize(8.5);doc.setTextColor(...INK);
+    doc.text(d+' ans'+(best?' \u2605':''),MX+3,y);
+    doc.text((td*100).toFixed(2)+'%',MX+38,y);
+    doc.text(eur(mm),MX+62,y);doc.text(eur(c),MX+108,y);doc.text(eur(ct),W-MX-3,y,{align:'right'});
+    doc.setDrawColor(...LINE);doc.setLineWidth(.2);doc.line(MX,y+2.5,W-MX,y+2.5);
+    y+=8;
+  });
+  foot(3);
+
+  /* ---- PAGE 4 : AMORTISSEMENT + PIÈCES ---- */
+  doc.addPage();header('Amortissement & pi\u00e8ces');
+  y=32;y=sec('Tableau d\u2019amortissement (synth\u00e8se annuelle)',y);
+  doc.setFillColor(246,248,252);doc.rect(MX,y-4,W-2*MX,8,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(107,114,128);
+  doc.text('P\u00c9RIODE',MX+3,y);doc.text('CAPITAL REMB.',MX+45,y);doc.text('INT\u00c9R\u00caTS',MX+95,y);doc.text('CAPITAL RESTANT D\u00db',W-MX-3,y,{align:'right'});
+  y+=8;
+  const rows=amortAnnuel(R.capitalBanque,R.dur,R.taux);
+  const showY=R.dur<=15?[1,3,5,8,12,15]:R.dur<=20?[1,5,10,15,18,20]:R.dur<=25?[1,5,10,15,20,25]:[1,5,10,15,22,27];
+  rows.filter(r=>showY.includes(r[0])).forEach(r=>{
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...INK);
+    doc.text('Ann\u00e9e '+r[0],MX+3,y);
+    doc.text(eur(r[1]),MX+45,y);doc.text(eur(r[2]),MX+95,y);doc.text(eur(r[3]),W-MX-3,y,{align:'right'});
+    doc.setDrawColor(...LINE);doc.setLineWidth(.2);doc.line(MX,y+2.5,W-MX,y+2.5);
+    y+=8;
+  });
+  y+=6;
+
+  y=sec('Pi\u00e8ces justificatives \u00e0 joindre',y);
+  const pieces=['Pi\u00e8ce d\u2019identit\u00e9 en cours de validit\u00e9','3 derniers bulletins de salaire','2 derniers avis d\u2019imposition','3 derniers relev\u00e9s de compte (tous comptes)','Justificatif d\u2019apport personnel','Justificatif de domicile (< 3 mois)','Contrat de travail + attestation employeur','Compromis de vente sign\u00e9'];
+  if(R.ptz>0) pieces.push('Justificatifs PTZ (avis N-2 + attestation primo-accession)');
+  if(R.typ!=='ancien') pieces.push('Contrat de r\u00e9servation (VEFA)');
+  pieces.forEach(p=>{
+    doc.setDrawColor(196,202,216);doc.setLineWidth(.4);doc.roundedRect(MX,y-3.5,4,4,1,1,'S');
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(...INK);
+    doc.text(p,MX+8,y);
+    y+=7.5;
+  });
+  y+=4;
+  // mentions
+  doc.setFillColor(255,251,235);doc.setDrawColor(255,176,32);doc.setLineWidth(.4);
+  const mh=22;doc.roundedRect(MX,y,W-2*MX,mh,2.5,2.5,'FD');
+  doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(180,120,0);
+  doc.text('Mentions r\u00e9glementaires',MX+4,y+5);
+  doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.setTextColor(120,90,20);
+  doc.text(doc.splitTextToSize('Document \u00e9tabli par un interm\u00e9diaire en op\u00e9rations de banque (IOBSP), titulaire de la carte T et de la certification AMF. Num\u00e9ro ORIAS, autorit\u00e9 de contr\u00f4le (ACPR) et coordonn\u00e9es du m\u00e9diateur \u00e0 faire figurer ici avant diffusion. Estimation indicative ne constituant pas une offre de pr\u00eat ni un conseil personnalis\u00e9 (art. L.519-1 CMF).',W-2*MX-8),MX+4,y+10);
+  foot(4);
+
+  doc.save('Dossier-'+ref+'.pdf');
+}
+
+document.getElementById('dur').addEventListener('change',syncTauxNote);
+syncTauxNote();
+go(0);
+
+// --- Bandeau défilant : mots-clés secteur crédit ---
+(function(){
+  const mots=['Taux fixe','Capacité d\u2019emprunt','TAEG','Apport','Prêt à taux zéro','Assurance emprunteur','HCSF 35%','Reste à vivre','Amortissement','Crédit immobilier','Mise en concurrence','Négociation bancaire','Compromis','Offre de prêt','LMNP','Cashflow','Rentabilité nette','Saut de charge','Garantie','Mensualité','Différé','Taux d\u2019endettement','Dossier banque','Primo-accédant'];
+  const track=document.getElementById('tickerTrack');
+  if(track){const b=()=>mots.map(m=>'<span class="ticker-item">\u2B21 '+m+'</span><span class="ticker-sep">/</span>').join('');track.innerHTML=b()+b();}
+})();
+</script>
+</body>
+</html>

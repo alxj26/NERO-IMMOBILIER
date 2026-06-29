@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Néro Pilote — Ton courtier prend le relais</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090D; --surface:#12141C; --surface2:#1A1D28; --line:#262A38;
+    --text:#F3F6FC; --muted:#8A91A6;
+    --sky:#38BDF8; --sky-bright:#7DD3FC; --indigo:#6366F1; --green:#34D399; --amber:#FFB020;
+    --grad:linear-gradient(120deg,#38BDF8,#6366F1);
+    --grad-soft:linear-gradient(120deg,rgba(56,189,248,.16),rgba(99,102,241,.16));
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+  ::selection{background:var(--sky);color:#04121c}
+  .gt{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  header{border-bottom:1px solid var(--line)}
+  .hd{display:flex;align-items:center;justify-content:space-between;height:62px;max-width:920px;margin:0 auto;padding:0 24px}
+  .logo{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.03em}
+  .logo .hex{font-size:21px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .logo small{font-family:var(--body);font-weight:500;font-size:12px;color:var(--muted);margin-left:2px}
+  .cert-mini{font-size:11px;color:var(--muted);font-family:var(--mono)}
+
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px}
+
+  /* HERO */
+  .hero{padding:50px 0 30px;display:grid;grid-template-columns:1.1fr .9fr;gap:44px;align-items:center}
+  @media(max-width:780px){.hero{grid-template-columns:1fr;gap:28px;padding:36px 0 20px}}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--sky-bright);background:var(--grad-soft);border:1px solid rgba(56,189,248,.28);padding:7px 13px;border-radius:100px;font-family:var(--mono);margin-bottom:18px}
+  .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--sky);box-shadow:0 0 8px var(--sky)}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4.4vw,40px);letter-spacing:-.03em;line-height:1.05;margin-bottom:16px}
+  .lead{color:var(--muted);font-size:16.5px;margin-bottom:22px}
+  .lead b{color:var(--text);font-weight:600}
+  .perks{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .perks li{display:flex;align-items:flex-start;gap:11px;font-size:14.5px}
+  .perks .c{color:var(--sky);font-weight:700;flex-shrink:0;margin-top:1px}
+  .perks b{font-weight:600}
+
+  /* TRUST CARD */
+  .trust{background:linear-gradient(165deg,var(--surface),#0c0d13);border:1px solid var(--line);border-radius:18px;padding:24px;position:relative;overflow:hidden}
+  .trust::before{content:'';position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(140deg,rgba(56,189,248,.45),transparent 45%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+  .trust h3{font-family:var(--display);font-size:15px;margin-bottom:4px}
+  .trust .sub{font-size:12.5px;color:var(--muted);margin-bottom:18px}
+  .cert{display:flex;align-items:center;gap:11px;padding:11px 0}
+  .cert+.cert{border-top:1px solid var(--line)}
+  .cert .ic{width:34px;height:34px;border-radius:9px;background:var(--grad-soft);display:flex;align-items:center;justify-content:center;color:var(--sky);font-size:15px;flex-shrink:0}
+  .cert .ct{font-family:var(--display);font-weight:600;font-size:13.5px}
+  .cert .cd{font-size:11.5px;color:var(--muted)}
+  .vs{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);text-align:center}
+  .vs .big{font-family:var(--display);font-weight:700;font-size:24px;color:var(--green)}
+  .vs .lbl{font-size:11.5px;color:var(--muted)}
+
+  /* FORM CARD */
+  .formcard{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:30px;margin:8px 0 50px}
+  .stepper{display:flex;gap:6px;margin-bottom:26px}
+  .stp{flex:1;height:4px;border-radius:3px;background:var(--surface2);overflow:hidden}
+  .stp i{display:block;height:100%;width:0;background:var(--grad);transition:width .4s}
+
+  .screen{display:none;animation:fade .35s ease}
+  .screen.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .slabel{font-family:var(--mono);font-size:11px;color:var(--sky);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px}
+  .scr-h{font-family:var(--display);font-weight:600;font-size:21px;letter-spacing:-.02em;margin-bottom:6px}
+  .scr-sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+
+  .chips{display:flex;gap:9px;flex-wrap:wrap}
+  .chip{flex:1;min-width:120px;text-align:center;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:16px 12px;font-size:14px;font-weight:500;cursor:pointer;transition:all .16s}
+  .chip:hover{border-color:var(--muted)}
+  .chip.sel{border-color:var(--sky);background:var(--grad-soft);color:var(--sky-bright)}
+  .chip .sm{display:block;font-size:11.5px;color:var(--muted);font-weight:400;margin-top:3px}
+  .chip.sel .sm{color:var(--sky-bright)}
+  .chip-col{flex-direction:column}
+  .chips.col{flex-direction:column}
+  .chips.col .chip{min-width:0;text-align:left;display:flex;align-items:center;gap:11px}
+  .chips.col .chip .em{font-size:18px}
+
+  .f{margin-bottom:16px}
+  .f label{display:block;font-size:13.5px;font-weight:500;margin-bottom:7px}
+  .f input,.f select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:13px 14px;color:var(--text);font-size:14.5px;font-family:var(--body)}
+  .f input:focus,.f select:focus{outline:none;border-color:var(--sky)}
+  .f input::placeholder{color:#4a4f60}
+  .f .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  @media(max-width:520px){.row2{grid-template-columns:1fr}}
+
+  .navb{display:flex;justify-content:space-between;gap:13px;margin-top:28px}
+  .btn{font-family:var(--display);font-weight:600;font-size:15px;padding:14px 26px;border-radius:12px;border:none;cursor:pointer;transition:transform .15s,box-shadow .2s,border-color .2s,opacity .2s}
+  .btn-primary{background:var(--grad);color:#04121c}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(56,189,248,.3)}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+  .btn-ghost:hover{border-color:var(--muted)}
+
+  .consent{display:flex;gap:11px;align-items:flex-start;margin-top:8px;font-size:12.5px;color:var(--muted);line-height:1.5}
+  .consent input{margin-top:2px;accent-color:var(--sky);width:16px;height:16px;flex-shrink:0}
+
+  /* SUCCESS */
+  .done{text-align:center;padding:14px 0}
+  .done .check{width:64px;height:64px;border-radius:50%;background:var(--green);color:#022;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px;animation:pop .4s cubic-bezier(.2,1.2,.4,1)}
+  @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+  .done h2{font-family:var(--display);font-size:24px;margin-bottom:10px}
+  .done p{color:var(--muted);font-size:14.5px;max-width:420px;margin:0 auto 8px}
+  .recap{background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:18px;margin:22px auto 0;max-width:380px;text-align:left}
+  .recap .rr{display:flex;justify-content:space-between;font-size:13px;padding:6px 0}
+  .recap .rr .rl{color:var(--muted)}
+  .recap .rr .rv{font-family:var(--mono);font-weight:500}
+
+  /* internal qualification (visible en démo) */
+  .qual{margin-top:22px;background:rgba(56,189,248,.05);border:1px dashed rgba(56,189,248,.3);border-radius:12px;padding:16px;font-size:12.5px}
+  .qual .qh{font-family:var(--mono);font-size:10.5px;color:var(--sky);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+  .qual .qrow{display:flex;justify-content:space-between;padding:4px 0;color:var(--muted)}
+  .qual .qscore{display:flex;align-items:center;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .qual .qbadge{font-family:var(--display);font-weight:700;font-size:13px;padding:5px 13px;border-radius:8px}
+  .demo-tag{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:7px 14px;font-size:11px;color:var(--muted);font-family:var(--mono);z-index:90}
+  @media(prefers-reduced-motion:reduce){.screen,.stp i{animation:none;transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd">
+    <a href="/" class="logo" style="text-decoration:none;color:inherit"><span class="hex">&#11041;</span>N&eacute;ro <small>Pilote</small></a>
+    <div class="cert-mini">&#11041; Courtier IOBSP certifi&eacute;</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <span class="badge"><span class="dot"></span>Gratuit &middot; r&eacute;mun&eacute;r&eacute; par la banque</span>
+      <h1>Laisse N&eacute;ro <span class="gt">n&eacute;gocier ton cr&eacute;dit.</span></h1>
+      <p class="lead">Tu as ton diagnostic. Maintenant, un <b>courtier certifi&eacute;</b> prend le relais : il consulte les banques, n&eacute;gocie ton taux et te d&eacute;croche la meilleure offre. <b>Sans frais pour toi.</b></p>
+      <ul class="perks">
+        <li><span class="c">&#10003;</span><span>Mise en concurrence de <b>plusieurs banques</b> en une fois</span></li>
+        <li><span class="c">&#10003;</span><span>N&eacute;gociation du <b>taux et de l'assurance</b> emprunteur</span></li>
+        <li><span class="c">&#10003;</span><span>Accompagnement <b>jusqu'&agrave; la signature</b> de l'offre</span></li>
+        <li><span class="c">&#10003;</span><span>R&eacute;mun&eacute;ration <b>via la banque</b> &mdash; 0&euro; de ta poche</span></li>
+      </ul>
+    </div>
+
+    <div class="trust">
+      <h3>Pourquoi N&eacute;ro&nbsp;?</h3>
+      <div class="sub">Pas un comparateur anonyme. Un professionnel habilit&eacute;.</div>
+      <div class="cert"><div class="ic">&#11041;</div><div><div class="ct">Courtier IOBSP</div><div class="cd">Habilit&eacute; &agrave; n&eacute;gocier ton cr&eacute;dit</div></div></div>
+      <div class="cert"><div class="ic">&#11041;</div><div><div class="ct">Certification AMF</div><div class="cd">Conseil en investissement</div></div></div>
+      <div class="cert"><div class="ic">&#11041;</div><div><div class="ct">Master Gestion de Patrimoine</div><div class="cd">Vision patrimoniale globale</div></div></div>
+      <div class="vs">
+        <div class="big">~2 500 &euro;</div>
+        <div class="lbl">d'honoraires de courtage &mdash; pris en charge, pas factur&eacute;s</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="formcard">
+    <div class="stepper">
+      <div class="stp" data-s="0"><i></i></div>
+      <div class="stp" data-s="1"><i></i></div>
+      <div class="stp" data-s="2"><i></i></div>
+      <div class="stp" data-s="3"><i></i></div>
+    </div>
+
+    <!-- ÉTAPE 1 : projet -->
+    <div class="screen on" data-screen="0">
+      <div class="slabel">&Eacute;tape 1 / 4</div>
+      <div class="scr-h">Quel est ton projet&nbsp;?</div>
+      <div class="scr-sub">Pour orienter ton dossier vers les bonnes banques.</div>
+      <div class="chips col" id="q-projet">
+        <div class="chip" data-v="rp"><span class="em">&#127968;</span><span>Acheter ma r&eacute;sidence principale</span></div>
+        <div class="chip" data-v="locatif"><span class="em">&#128181;</span><span>Investissement locatif</span></div>
+        <div class="chip" data-v="rachat"><span class="em">&#128260;</span><span>Renégocier / racheter mon cr&eacute;dit</span></div>
+        <div class="chip" data-v="secondaire"><span class="em">&#127958;</span><span>R&eacute;sidence secondaire</span></div>
+      </div>
+      <div class="navb"><span></span><button class="btn btn-primary" id="b0" disabled onclick="go(1)">Continuer &rarr;</button></div>
+    </div>
+
+    <!-- ÉTAPE 2 : avancement -->
+    <div class="screen" data-screen="1">
+      <div class="slabel">&Eacute;tape 2 / 4</div>
+      <div class="scr-h">O&ugrave; en es-tu&nbsp;?</div>
+      <div class="scr-sub">Plus c'est avanc&eacute;, plus on agit vite.</div>
+      <div class="chips col" id="q-avancement">
+        <div class="chip" data-v="signe"><span class="em">&#9989;</span><span>J'ai sign&eacute; un compromis<span class="sm">Il y a urgence, d&eacute;lai en cours</span></span></div>
+        <div class="chip" data-v="offre"><span class="em">&#128269;</span><span>J'ai trouv&eacute; un bien<span class="sm">Pr&ecirc;t &agrave; faire une offre</span></span></div>
+        <div class="chip" data-v="recherche"><span class="em">&#128064;</span><span>Je suis en recherche active<span class="sm">Je veux conna&icirc;tre ma capacit&eacute;</span></span></div>
+        <div class="chip" data-v="reflexion"><span class="em">&#128173;</span><span>Je me renseigne<span class="sm">Projet &agrave; quelques mois</span></span></div>
+      </div>
+      <div class="navb"><button class="btn btn-ghost" onclick="go(0)">&larr; Retour</button><button class="btn btn-primary" id="b1" disabled onclick="go(2)">Continuer &rarr;</button></div>
+    </div>
+
+    <!-- ÉTAPE 3 : chiffres -->
+    <div class="screen" data-screen="2">
+      <div class="slabel">&Eacute;tape 3 / 4</div>
+      <div class="scr-h">Quelques chiffres</div>
+      <div class="scr-sub">Pour pr&eacute;parer un dossier solide avant de te rappeler.</div>
+      <div class="row2">
+        <div class="f">
+          <label>Montant du projet</label>
+          <input type="number" id="montant" placeholder="320000">
+          <div class="hint">Prix du bien vis&eacute;</div>
+        </div>
+        <div class="f">
+          <label>Apport disponible</label>
+          <input type="number" id="apport" placeholder="40000">
+          <div class="hint">&Eacute;pargne mobilisable</div>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="f">
+          <label>Revenus nets du foyer /mois</label>
+          <input type="number" id="revenus" placeholder="4200">
+        </div>
+        <div class="f">
+          <label>Situation professionnelle</label>
+          <select id="situation">
+            <option value="">Choisir…</option>
+            <option value="cdi">CDI</option>
+            <option value="fonctionnaire">Fonctionnaire</option>
+            <option value="independant">Ind&eacute;pendant / TNS</option>
+            <option value="cdd">CDD / interim</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+      </div>
+      <div class="navb"><button class="btn btn-ghost" onclick="go(1)">&larr; Retour</button><button class="btn btn-primary" onclick="go(3)">Continuer &rarr;</button></div>
+    </div>
+
+    <!-- ÉTAPE 4 : contact -->
+    <div class="screen" data-screen="3">
+      <div class="slabel">&Eacute;tape 4 / 4</div>
+      <div class="scr-h">O&ugrave; te rappeler&nbsp;?</div>
+      <div class="scr-sub">N&eacute;ro te recontacte sous 24h ouvr&eacute;es.</div>
+      <div class="f">
+        <label>Pr&eacute;nom & nom</label>
+        <input type="text" id="nom" placeholder="Jean Dupont">
+      </div>
+      <div class="row2">
+        <div class="f">
+          <label>T&eacute;l&eacute;phone</label>
+          <input type="tel" id="tel" placeholder="06 12 34 56 78">
+        </div>
+        <div class="f">
+          <label>E-mail</label>
+          <input type="email" id="email" placeholder="jean@email.fr">
+        </div>
+      </div>
+      <div class="f">
+        <label>Cr&eacute;neau pr&eacute;f&eacute;r&eacute; pour l'appel</label>
+        <select id="creneau">
+          <option value="indiff">Indiff&eacute;rent</option>
+          <option value="matin">Matin (9h-12h)</option>
+          <option value="midi">Midi (12h-14h)</option>
+          <option value="aprem">Apr&egrave;s-midi (14h-18h)</option>
+          <option value="soir">Soir (18h-20h)</option>
+        </select>
+      </div>
+      <label class="consent">
+        <input type="checkbox" id="rgpd">
+        <span>J'accepte d'&ecirc;tre recontact&eacute; par N&eacute;ro au sujet de mon projet et que mes informations soient trait&eacute;es conform&eacute;ment &agrave; la <u>politique de confidentialit&eacute;</u>. Aucune donn&eacute;e ne sera revendue.</span>
+      </label>
+      <div class="navb"><button class="btn btn-ghost" onclick="go(2)">&larr; Retour</button><button class="btn btn-primary" id="submit" disabled onclick="submitLead()">Demander mon rappel</button></div>
+    </div>
+
+    <!-- SUCCÈS -->
+    <div class="screen" data-screen="4">
+      <div class="done">
+        <div class="check">&#10003;</div>
+        <h2>C'est not&eacute;, <span id="okName">&nbsp;</span>&#8239;!</h2>
+        <p id="okMsg">Ton courtier N&eacute;ro te rappelle sous 24h ouvr&eacute;es pour lancer la n&eacute;gociation. Pr&eacute;pare tes 3 derniers bulletins de salaire, &ccedil;a fera gagner du temps.</p>
+        <div class="recap" id="recap"></div>
+
+        <!-- bloc visible en démo : ce que TOI (courtier) reçois -->
+        <div class="qual">
+          <div class="qh">&#11041; Fiche lead (c&ocirc;t&eacute; courtier)</div>
+          <div id="qualRows"></div>
+          <div class="qscore">
+            <span class="qbadge" id="qBadge">&mdash;</span>
+            <span id="qText" style="color:var(--muted)"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="demo-tag">&#9888; Maquette &mdash; aucune donn&eacute;e n'est r&eacute;ellement envoy&eacute;e</div>
+
+<script>
+const lead={projet:null,avancement:null};
+
+// chips simples
+function bindChips(groupId,key,btnId){
+  const g=document.getElementById(groupId);
+  g.querySelectorAll('.chip').forEach(c=>{
+    c.onclick=()=>{
+      g.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));
+      c.classList.add('sel');lead[key]=c.dataset.v;
+      if(btnId)document.getElementById(btnId).disabled=false;
+    };
+  });
+}
+bindChips('q-projet','projet','b0');
+bindChips('q-avancement','avancement','b1');
+
+// navigation
+function go(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',+s.dataset.screen===n));
+  document.querySelectorAll('.stp').forEach(s=>{
+    const i=+s.dataset.s;
+    s.querySelector('i').style.width=(i<n?100:i===n?60:0)+'%';
+  });
+  window.scrollTo({top:document.querySelector('.formcard').offsetTop-20,behavior:'smooth'});
+}
+
+// validation étape 4 (RGPD + contact)
+function checkSubmit(){
+  const ok=document.getElementById('nom').value && document.getElementById('tel').value &&
+           document.getElementById('email').value && document.getElementById('rgpd').checked;
+  document.getElementById('submit').disabled=!ok;
+}
+['nom','tel','email'].forEach(id=>document.getElementById(id).addEventListener('input',checkSubmit));
+document.getElementById('rgpd').addEventListener('change',checkSubmit);
+
+// ===== SCORE DE QUALIFICATION (priorisation des rappels) =====
+function scoreLead(){
+  let s=0;
+  // avancement = signal d'urgence le plus fort
+  s+={signe:40,offre:30,recherche:18,reflexion:8}[lead.avancement]||0;
+  // type de projet
+  s+={rp:20,locatif:22,rachat:14,secondaire:12}[lead.projet]||0;
+  // capacité financière
+  const rev=+document.getElementById('revenus').value||0;
+  const app=+document.getElementById('apport').value||0;
+  const mt=+document.getElementById('montant').value||0;
+  if(rev>=5000)s+=15;else if(rev>=3000)s+=10;else if(rev>=2000)s+=5;
+  if(mt>0 && app/mt>=0.10)s+=12;else if(mt>0 && app/mt>=0.05)s+=6;
+  // situation pro
+  s+={cdi:11,fonctionnaire:11,independant:7,cdd:3,autre:3}[document.getElementById('situation').value]||0;
+  return Math.min(s,100);
+}
+
+function submitLead(){
+  const nom=document.getElementById('nom').value.split(' ')[0];
+  document.getElementById('okName').textContent=nom;
+
+  // récap visible client
+  const projetLbl={rp:'R\u00e9sidence principale',locatif:'Investissement locatif',rachat:'Rachat de cr\u00e9dit',secondaire:'R\u00e9sidence secondaire'}[lead.projet];
+  const avancLbl={signe:'Compromis sign\u00e9',offre:'Bien trouv\u00e9',recherche:'Recherche active',reflexion:'En r\u00e9flexion'}[lead.avancement];
+  const mt=+document.getElementById('montant').value||0;
+  const creneauLbl={indiff:'Indiff\u00e9rent',matin:'Matin',midi:'Midi',aprem:'Apr\u00e8s-midi',soir:'Soir'}[document.getElementById('creneau').value];
+  document.getElementById('recap').innerHTML=
+    rrow('Projet',projetLbl)+rrow('Avancement',avancLbl)+
+    (mt?rrow('Montant',mt.toLocaleString('fr-FR')+' \u20ac'):'')+
+    rrow('Rappel souhait\u00e9',creneauLbl);
+
+  // fiche lead côté courtier + score
+  const score=scoreLead();
+  const rev=+document.getElementById('revenus').value||0;
+  const app=+document.getElementById('apport').value||0;
+  document.getElementById('qualRows').innerHTML=
+    qrow('Projet / avancement',projetLbl+' \u00b7 '+avancLbl)+
+    qrow('Capacit\u00e9 estim\u00e9e',rev?('~'+Math.round(rev*0.35*200).toLocaleString('fr-FR')+' \u20ac'):'\u2014')+
+    qrow('Apport',app?app.toLocaleString('fr-FR')+' \u20ac':'\u2014')+
+    qrow('Situation',document.getElementById('situation').value||'\u2014');
+
+  let badge,col,txt;
+  if(score>=70){badge='PRIORITAIRE';col='var(--green)';txt='Lead chaud \u2014 rappeler en priorit\u00e9 (<2h).';}
+  else if(score>=45){badge='QUALIFI\u00c9';col='var(--sky)';txt='Bon potentiel \u2014 rappel sous 24h.';}
+  else{badge='\u00c0 NOURRIR';col='var(--amber)';txt='Projet encore t\u00f4t \u2014 suivi par e-mail recommand\u00e9.';}
+  const b=document.getElementById('qBadge');b.textContent=score+' \u00b7 '+badge;
+  b.style.background=col;b.style.color='#04121c';
+  document.getElementById('qText').textContent=txt;
+
+  go(4);
+  // en prod : POST des données vers ton CRM / e-mail / Google Sheet ici
+}
+function rrow(l,v){return '<div class="rr"><span class="rl">'+l+'</span><span class="rv">'+(v||'\u2014')+'</span></div>';}
+function qrow(l,v){return '<div class="qrow"><span>'+l+'</span><span style="color:var(--text);font-family:var(--mono)">'+v+'</span></div>';}
+</script>
+</body>
+</html>

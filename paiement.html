@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Néro — Paiement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090D; --surface:#12141C; --surface2:#1A1D28; --line:#262A38;
+    --text:#F3F6FC; --muted:#8A91A6;
+    --sky:#38BDF8; --sky-bright:#7DD3FC; --indigo:#6366F1; --green:#34D399; --red:#FF5470;
+    --grad:linear-gradient(120deg,#38BDF8,#6366F1);
+    --grad-soft:linear-gradient(120deg,rgba(56,189,248,.16),rgba(99,102,241,.16));
+    --display:'Space Grotesk',sans-serif; --body:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+  ::selection{background:var(--sky);color:#04121c}
+  .gt{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  header{border-bottom:1px solid var(--line)}
+  .hd{display:flex;align-items:center;justify-content:space-between;height:62px;max-width:980px;margin:0 auto;padding:0 24px}
+  .logo{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.03em}
+  .logo .hex{font-size:21px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .secure{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;font-family:var(--mono)}
+
+  .wrap{max-width:980px;margin:0 auto;padding:40px 24px 60px}
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:start}
+  @media(max-width:820px){.grid{grid-template-columns:1fr;gap:28px}}
+
+  h1{font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:-.03em;margin-bottom:8px}
+  .lead{color:var(--muted);font-size:15px;margin-bottom:28px}
+
+  /* PLAN TOGGLE */
+  .plans{display:flex;flex-direction:column;gap:12px;margin-bottom:26px}
+  .plan{border:1.5px solid var(--line);border-radius:14px;padding:18px 20px;cursor:pointer;transition:border-color .2s,background .2s;position:relative}
+  .plan:hover{border-color:var(--muted)}
+  .plan.sel{border-color:var(--sky);background:var(--grad-soft)}
+  .plan .pr{display:flex;align-items:center;justify-content:space-between}
+  .plan .pn{font-family:var(--display);font-weight:600;font-size:16px;display:flex;align-items:center;gap:10px}
+  .plan .radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;transition:all .2s;position:relative}
+  .plan.sel .radio{border-color:var(--sky)}
+  .plan.sel .radio::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--sky)}
+  .plan .price{font-family:var(--display);font-weight:700;font-size:20px}
+  .plan .price small{font-size:13px;color:var(--muted);font-weight:400}
+  .plan .pd{font-size:12.5px;color:var(--muted);margin-top:6px;padding-left:28px}
+  .plan .tag{font-family:var(--mono);font-size:10px;background:var(--grad);color:#04121c;padding:2px 8px;border-radius:6px;font-weight:700}
+
+  /* FORM */
+  .form-sec{margin-bottom:22px}
+  .form-sec h3{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:13px}
+  .f{margin-bottom:13px}
+  .f label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .f input{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14.5px;font-family:var(--body)}
+  .f input:focus{outline:none;border-color:var(--sky)}
+  .f input::placeholder{color:#4a4f60}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .card-input{position:relative}
+  .card-brands{position:absolute;right:13px;top:50%;transform:translateY(-50%);display:flex;gap:5px;font-size:9px;color:var(--muted);font-family:var(--mono)}
+
+  .pay-btn{width:100%;font-family:var(--display);font-weight:600;font-size:16px;background:var(--grad);color:#04121c;border:none;border-radius:12px;padding:16px;cursor:pointer;transition:transform .15s,box-shadow .2s;margin-top:6px}
+  .pay-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(56,189,248,.32)}
+  .pay-note{font-size:11.5px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.6}
+
+  /* SUMMARY */
+  .summary{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:26px;position:sticky;top:24px}
+  .summary h2{font-family:var(--display);font-size:16px;margin-bottom:18px}
+  .item{display:flex;gap:14px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+  .item .ico{width:46px;height:46px;border-radius:12px;background:var(--grad-soft);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+  .item .it{font-family:var(--display);font-weight:600;font-size:15px}
+  .item .id{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+  .sline{display:flex;justify-content:space-between;font-size:14px;padding:7px 0;color:var(--muted)}
+  .sline .sv{font-family:var(--mono);color:var(--text)}
+  .sline.tot{border-top:1px solid var(--line);margin-top:8px;padding-top:14px;font-family:var(--display);font-weight:700;font-size:18px;color:var(--text)}
+  .sline.tot .sv{font-size:20px;color:var(--sky-bright);font-weight:700}
+  .guarantee{display:flex;gap:10px;align-items:flex-start;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:13px;margin-top:18px;font-size:12px;color:var(--muted);line-height:1.5}
+  .guarantee .g{color:var(--green);flex-shrink:0;margin-top:1px}
+  .trust-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;font-size:11px;color:var(--muted);font-family:var(--mono)}
+
+  /* SUCCESS overlay */
+  .overlay{position:fixed;inset:0;background:rgba(8,9,13,.92);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:100;padding:24px}
+  .overlay.on{display:flex;animation:fade .3s}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .success{background:linear-gradient(165deg,var(--surface),#0c0d13);border:1px solid rgba(52,211,153,.3);border-radius:20px;padding:40px;max-width:420px;text-align:center}
+  .success .check{width:64px;height:64px;border-radius:50%;background:var(--green);color:#022;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px;animation:pop .4s cubic-bezier(.2,1.2,.4,1)}
+  @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+  .success h2{font-family:var(--display);font-size:23px;margin-bottom:10px}
+  .success p{color:var(--muted);font-size:14px;margin-bottom:24px}
+  .success .dl{display:inline-flex;align-items:center;gap:9px;font-family:var(--display);font-weight:600;font-size:15px;background:var(--grad);color:#04121c;border:none;border-radius:11px;padding:14px 24px;cursor:pointer;text-decoration:none}
+  .demo-tag{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:7px 14px;font-size:11px;color:var(--muted);font-family:var(--mono);z-index:90}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd">
+    <a href="/" class="logo" style="text-decoration:none;color:inherit"><span class="hex">&#11041;</span>N&eacute;ro</a>
+    <div class="secure">&#128274; Paiement s&eacute;curis&eacute; &middot; Stripe</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <!-- COLONNE GAUCHE : choix + form -->
+    <div>
+      <h1>Finalise ton <span class="gt">dossier.</span></h1>
+      <p class="lead">D&eacute;bloque ton dossier bancaire complet, pr&ecirc;t &agrave; pr&eacute;senter. Paiement unique, sans engagement.</p>
+
+      <div class="plans" id="plans">
+        <div class="plan sel" data-plan="home" data-amount="29" data-mode="once">
+          <div class="pr">
+            <div class="pn"><span class="radio"></span>N&eacute;ro Home</div>
+            <div class="price">29 &euro; <small>une fois</small></div>
+          </div>
+          <div class="pd">Dossier bancaire PDF premium + checklist + comparateur de sc&eacute;narios. Le bien que tu vises, pr&ecirc;t pour la banque.</div>
+        </div>
+        <div class="plan" data-plan="invest" data-amount="9" data-mode="sub">
+          <div class="pr">
+            <div class="pn"><span class="radio"></span>N&eacute;ro Invest <span class="tag">POPULAIRE</span></div>
+            <div class="price">9 &euro; <small>/mois</small></div>
+          </div>
+          <div class="pd">Tout N&eacute;ro Home + simulateur locatif, N&eacute;ro Score, comparateur fiscal (LMNP, Jeanbrun), SCPI et multi-projets.</div>
+        </div>
+        <div class="plan" data-plan="invest_year" data-amount="99" data-mode="sub_year">
+          <div class="pr">
+            <div class="pn"><span class="radio"></span>N&eacute;ro Invest annuel <span class="tag">2 MOIS OFFERTS</span></div>
+            <div class="price">99 &euro; <small>/an</small></div>
+          </div>
+          <div class="pd">La formule compl&egrave;te au meilleur prix. Soit 8,25 &euro;/mois factur&eacute;s une fois par an.</div>
+        </div>
+      </div>
+
+      <div class="form-sec">
+        <h3>Tes coordonn&eacute;es</h3>
+        <div class="f">
+          <label>Adresse e-mail</label>
+          <input type="email" placeholder="ton@email.fr" id="email">
+        </div>
+        <div class="f">
+          <label>Nom complet</label>
+          <input type="text" placeholder="Jean Dupont" id="name">
+        </div>
+      </div>
+
+      <div class="form-sec">
+        <h3>Paiement</h3>
+        <div class="f">
+          <label>Num&eacute;ro de carte</label>
+          <div class="card-input">
+            <input type="text" placeholder="1234 1234 1234 1234" id="card" maxlength="19">
+            <div class="card-brands">VISA &middot; MC &middot; AMEX</div>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="f">
+            <label>Expiration</label>
+            <input type="text" placeholder="MM / AA" maxlength="7" id="exp">
+          </div>
+          <div class="f">
+            <label>CVC</label>
+            <input type="text" placeholder="123" maxlength="4" id="cvc">
+          </div>
+        </div>
+      </div>
+
+      <button class="pay-btn" id="payBtn" onclick="fakePay()">Payer 29 &euro;</button>
+      <p class="pay-note">En validant, tu acceptes les conditions de vente N&eacute;ro.<br>Paiement chiffr&eacute; et trait&eacute; par Stripe. Néro ne stocke aucune donn&eacute;e bancaire.</p>
+    </div>
+
+    <!-- COLONNE DROITE : récap -->
+    <div>
+      <div class="summary">
+        <h2>R&eacute;capitulatif</h2>
+        <div class="item">
+          <div class="ico" id="sumIco">&#127968;</div>
+          <div>
+            <div class="it" id="sumTitle">N&eacute;ro Home</div>
+            <div class="id" id="sumDesc">Dossier bancaire complet, t&eacute;l&eacute;chargeable imm&eacute;diatement apr&egrave;s paiement.</div>
+          </div>
+        </div>
+        <div class="sline"><span>Sous-total</span><span class="sv" id="sumSub">29,00 &euro;</span></div>
+        <div class="sline"><span>TVA (20%)</span><span class="sv" id="sumTva">incluse</span></div>
+        <div class="sline tot"><span>Total</span><span class="sv" id="sumTot">29,00 &euro;</span></div>
+
+        <div class="guarantee">
+          <span class="g">&#10003;</span>
+          <span id="guaranteeTxt">Acc&egrave;s imm&eacute;diat au dossier. Satisfait ou rembours&eacute; sous 14 jours conform&eacute;ment au droit de r&eacute;tractation.</span>
+        </div>
+
+        <div class="trust-row">&#128274; SSL &middot; PCI-DSS &middot; 3D Secure</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS overlay -->
+<div class="overlay" id="overlay">
+  <div class="success">
+    <div class="check">&#10003;</div>
+    <h2 id="okTitle">Paiement confirm&eacute; !</h2>
+    <p id="okDesc">Ton dossier N&eacute;ro Home est pr&ecirc;t. Tu peux le t&eacute;l&eacute;charger maintenant — une copie part aussi par e-mail.</p>
+    <a class="dl" href="#" onclick="closeOverlay();return false;">&#11015; T&eacute;l&eacute;charger mon dossier</a>
+  </div>
+</div>
+
+<div class="demo-tag">&#9888; Maquette — aucun paiement r&eacute;el n'est trait&eacute;</div>
+
+<script>
+let cur={plan:'home',amount:29,mode:'once'};
+const plansEl=document.getElementById('plans');
+const meta={
+  home:{ico:'&#127968;',title:'N\u00e9ro Home',desc:'Dossier bancaire complet, t\u00e9l\u00e9chargeable imm\u00e9diatement apr\u00e8s paiement.',guarantee:'Acc\u00e8s imm\u00e9diat au dossier. Satisfait ou rembours\u00e9 sous 14 jours conform\u00e9ment au droit de r\u00e9tractation.',btn:'Payer 29 \u20ac',sub:'29,00 \u20ac',tot:'29,00 \u20ac',okTitle:'Paiement confirm\u00e9 !',okDesc:'Ton dossier N\u00e9ro Home est pr\u00eat. Tu peux le t\u00e9l\u00e9charger maintenant \u2014 une copie part aussi par e-mail.',dl:'\u2b07 T\u00e9l\u00e9charger mon dossier'},
+  invest:{ico:'&#128202;',title:'N\u00e9ro Invest',desc:'Abonnement mensuel. Acc\u00e8s imm\u00e9diat \u00e0 tous les outils investisseur. R\u00e9siliable \u00e0 tout moment.',guarantee:'Sans engagement. R\u00e9siliable en un clic depuis ton espace. Premier mois enti\u00e8rement rembours\u00e9 si tu changes d\u2019avis.',btn:'S\u2019abonner \u2014 9 \u20ac/mois',sub:'9,00 \u20ac/mois',tot:'9,00 \u20ac',okTitle:'Abonnement actif !',okDesc:'Bienvenue dans N\u00e9ro Invest. Tous les outils investisseur sont d\u00e9bloqu\u00e9s. Tu peux g\u00e9rer ton abonnement \u00e0 tout moment.',dl:'\u2192 Acc\u00e9der aux outils'},
+  invest_year:{ico:'&#11088;',title:'N\u00e9ro Invest annuel',desc:'Abonnement annuel, 2 mois offerts. Facturation une fois par an, renouvellement automatique.',guarantee:'2 mois offerts vs mensuel. R\u00e9siliable avant renouvellement. Rembours\u00e9 sous 14 jours si non utilis\u00e9.',btn:'S\u2019abonner \u2014 99 \u20ac/an',sub:'99,00 \u20ac/an',tot:'99,00 \u20ac',okTitle:'Abonnement annuel actif !',okDesc:'Bienvenue dans N\u00e9ro Invest. Tu es tranquille pour un an, tous les outils sont d\u00e9bloqu\u00e9s.',dl:'\u2192 Acc\u00e9der aux outils'}
+};
+
+plansEl.querySelectorAll('.plan').forEach(p=>{
+  p.onclick=()=>{
+    plansEl.querySelectorAll('.plan').forEach(x=>x.classList.remove('sel'));
+    p.classList.add('sel');
+    cur={plan:p.dataset.plan,amount:+p.dataset.amount,mode:p.dataset.mode};
+    const m=meta[cur.plan];
+    document.getElementById('sumIco').innerHTML=m.ico;
+    document.getElementById('sumTitle').innerHTML=m.title;
+    document.getElementById('sumDesc').innerHTML=m.desc;
+    document.getElementById('sumSub').innerHTML=m.sub;
+    document.getElementById('sumTot').innerHTML=m.tot;
+    document.getElementById('guaranteeTxt').innerHTML=m.guarantee;
+    document.getElementById('payBtn').innerHTML=m.btn;
+    document.getElementById('sumTva').innerHTML=cur.mode==='once'?'incluse':'incluse';
+  };
+});
+
+// formatage léger des champs carte
+document.getElementById('card').addEventListener('input',e=>{
+  let v=e.target.value.replace(/\D/g,'').slice(0,16);
+  e.target.value=v.replace(/(.{4})/g,'$1 ').trim();
+});
+document.getElementById('exp').addEventListener('input',e=>{
+  let v=e.target.value.replace(/\D/g,'').slice(0,4);
+  e.target.value=v.length>2?v.slice(0,2)+' / '+v.slice(2):v;
+});
+document.getElementById('cvc').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'');});
+
+function fakePay(){
+  const m=meta[cur.plan];
+  document.getElementById('okTitle').innerHTML=m.okTitle;
+  document.getElementById('okDesc').innerHTML=m.okDesc;
+  document.querySelector('.success .dl').innerHTML=m.dl;
+  document.getElementById('overlay').classList.add('on');
+}
+function closeOverlay(){document.getElementById('overlay').classList.remove('on');}
+</script>
+</body>
+</html>
