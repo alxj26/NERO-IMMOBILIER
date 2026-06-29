@@ -1,0 +1,10 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/home", "destination": "/home.html" },
+    { "source": "/invest", "destination": "/invest.html" },
+    { "source": "/pilote", "destination": "/pilote.html" },
+    { "source": "/paiement", "destination": "/paiement.html" }
+  ]
+}
