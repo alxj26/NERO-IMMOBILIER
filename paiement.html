@@ -26,6 +26,10 @@
   .logo{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.03em}
   .logo .hex{font-size:21px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
   .secure{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;font-family:var(--mono)}
+  .cross-nav{display:flex;gap:18px;font-size:13px}
+  .cross-nav a{color:var(--muted);text-decoration:none}
+  .cross-nav a:hover{color:var(--sky-bright)}
+  @media(max-width:560px){.cross-nav{display:none}}
 
   .wrap{max-width:980px;margin:0 auto;padding:40px 24px 60px}
   .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:start}
@@ -97,6 +101,7 @@
 <header>
   <div class="hd">
     <a href="/" class="logo" style="text-decoration:none;color:inherit"><span class="hex">&#11041;</span>N&eacute;ro</a>
+    <nav class="cross-nav"><a href="/home">Home</a><a href="/invest">Invest</a><a href="/pilote">Pilote</a></nav>
     <div class="secure">&#128274; Paiement s&eacute;curis&eacute; &middot; Stripe</div>
   </div>
 </header>
