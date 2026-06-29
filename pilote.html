@@ -26,6 +26,10 @@
   .logo{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:-.03em}
   .logo .hex{font-size:21px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
   .logo small{font-family:var(--body);font-weight:500;font-size:12px;color:var(--muted);margin-left:2px}
+  .cross-nav{display:flex;gap:18px;font-size:13px}
+  .cross-nav a{color:var(--muted);text-decoration:none}
+  .cross-nav a:hover{color:var(--sky-bright)}
+  @media(max-width:560px){.cross-nav{display:none}}
   .cert-mini{font-size:11px;color:var(--muted);font-family:var(--mono)}
 
   .wrap{max-width:920px;margin:0 auto;padding:0 24px}
@@ -126,6 +130,7 @@
 <header>
   <div class="hd">
     <a href="/" class="logo" style="text-decoration:none;color:inherit"><span class="hex">&#11041;</span>N&eacute;ro <small>Pilote</small></a>
+    <nav class="cross-nav"><a href="/home">Home</a><a href="/invest">Invest</a></nav>
     <div class="cert-mini">&#11041; Courtier IOBSP certifi&eacute;</div>
   </div>
 </header>
